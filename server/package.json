@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "node src/index.js",
-    "test:client": "node test-client.js"
+    "test:client": "node test-client.js",
+    "test:room": "node test-room-functionality.js"
   },
   "repository": {
     "type": "git",
