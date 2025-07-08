@@ -27,7 +27,7 @@ class ClientService {
     client.send({
       type: "welcome",
       clientId: client.id,
-      message: "Bem-vindo ao Ephero! Use /create para criar uma sala ou /join <roomId> para entrar em uma sala.",
+      message: "Welcome to Ephero! Use /create to create a room or /join <roomId> to join a room.",
     });
   }
 }

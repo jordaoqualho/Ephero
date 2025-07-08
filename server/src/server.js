@@ -35,7 +35,7 @@ class EpheroServer {
       } catch (error) {
         client.send({
           type: "error",
-          error: "Erro ao processar mensagem",
+          error: "Error processing message",
         });
       }
     });
@@ -65,13 +65,13 @@ class EpheroServer {
   }
 
   logServerStart() {
-    console.log(`Servidor WebSocket rodando em ws://localhost:${this.port}`);
-    console.log("Funcionalidades disponíveis:");
-    console.log("- Criar sala: { type: 'create_room' }");
-    console.log("- Entrar em sala: { type: 'join_room', roomId: 'ABC123' }");
-    console.log("- Enviar mensagem: { type: 'message', message: 'texto' }");
-    console.log("- Sair da sala: { type: 'leave_room' }");
-    console.log("- Listar salas: { type: 'get_rooms' }");
+    console.log(`WebSocket server running at ws://localhost:${this.port}`);
+    console.log("Available features:");
+    console.log("- Create room: { type: 'create_room' }");
+    console.log("- Join room: { type: 'join_room', roomId: 'ABC123' }");
+    console.log("- Send message: { type: 'message', message: 'text' }");
+    console.log("- Leave room: { type: 'leave_room' }");
+    console.log("- List rooms: { type: 'get_rooms' }");
   }
 
   stop() {

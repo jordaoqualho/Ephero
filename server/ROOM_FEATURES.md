@@ -1,21 +1,21 @@
-# Funcionalidades de Sala - Ephero WebSocket Server
+# Room Features - Ephero WebSocket Server
 
-## Visão Geral
+## Overview
 
-O servidor WebSocket do Ephero implementa um sistema completo de salas efêmeras com as seguintes funcionalidades principais:
+The Ephero WebSocket server implements a complete ephemeral room system with the following main features:
 
-## ✅ Funcionalidades Implementadas
+## ✅ Implemented Features
 
-### 1. **Entrada em Sala por RoomId**
+### 1. **Join Room by RoomId**
 
-- Clientes podem entrar em salas existentes usando o ID da sala
-- Validação de existência da sala
-- Controle de capacidade máxima (10 clientes por sala)
+- Clients can join existing rooms using the room ID
+- Complete validation of room existence and capacity
+- Response with confirmation and client count
 
-**Exemplo:**
+**Example:**
 
 ```javascript
-// Entrar em uma sala existente
+// Join an existing room
 ws.send(
   JSON.stringify({
     type: "join_room",
@@ -24,23 +24,23 @@ ws.send(
 );
 ```
 
-### 2. **Rastreamento de Clientes**
+### 2. **Client Tracking**
 
-- Contagem em tempo real de clientes na sala
-- Notificações automáticas quando clientes entram/saem
-- Informações detalhadas sobre cada sala ativa
+- Real-time client count in the room
+- Automatic notifications when clients join/leave
+- Detailed information about each active room
 
-**Eventos de rastreamento:**
+**Tracking events:**
 
 ```javascript
-// Cliente entrou na sala
+// Client joined the room
 {
   type: 'user_joined',
   userId: 'client123',
   timestamp: 1640995200000
 }
 
-// Cliente saiu da sala
+// Client left the room
 {
   type: 'user_left',
   userId: 'client123',
@@ -48,41 +48,41 @@ ws.send(
 }
 ```
 
-### 3. **Broadcasting de Dados**
+### 3. **Data Broadcasting**
 
-- Mensagens são enviadas para todos os clientes na sala
-- Exclusão automática do remetente (não recebe sua própria mensagem)
-- Suporte a diferentes tipos de dados
+- Messages are sent to all clients in the room
+- Automatic exclusion of sender (doesn't receive their own message)
+- Support for different data types
 
-**Exemplo de broadcasting:**
+**Broadcasting example:**
 
 ```javascript
-// Enviar mensagem para todos na sala
+// Send message to everyone in the room
 ws.send(JSON.stringify({
   type: 'message',
-  message: 'Dados criptografados aqui'
+  message: 'Encrypted data here'
 }));
 
-// Receber mensagem (todos exceto o remetente)
+// Receive message (everyone except sender)
 {
   type: 'message',
   userId: 'client123',
-  message: 'Dados criptografados aqui',
+  message: 'Encrypted data here',
   timestamp: 1640995200000
 }
 ```
 
-## 🔧 Implementação Técnica
+## 🔧 Technical Implementation
 
-### **Modelo Room**
+### **Room Model**
 
 ```javascript
 class Room {
   constructor(id) {
     this.id = id;
-    this.clients = new Set(); // Rastreamento de clientes
-    this.maxClients = 10; // Capacidade máxima
-    this.ttl = 30 * 60 * 1000; // 30 minutos TTL
+    this.clients = new Set(); // Client tracking
+    this.maxClients = 10; // Maximum capacity
+    this.ttl = 30 * 60 * 1000; // 30 minutes TTL
   }
 
   addClient(client) {
@@ -129,27 +129,27 @@ class MessageHandler {
 }
 ```
 
-## 🧪 Testes
+## 🧪 Testing
 
-### **Executar Testes de Funcionalidade**
+### **Run Functionality Tests**
 
 ```bash
 cd server
 npm run test:room
 ```
 
-### **Testes Incluídos**
+### **Included Tests**
 
-1. **Criação de Sala** - Verifica se salas são criadas corretamente
-2. **Entrada por RoomId** - Testa entrada em sala existente
-3. **Broadcasting** - Verifica se mensagens chegam a todos os clientes
-4. **Rastreamento** - Confirma contagem correta de clientes
-5. **Saída de Sala** - Testa notificações de saída
+1. **Room Creation** - Verifies rooms are created correctly
+2. **Join by RoomId** - Tests joining existing rooms
+3. **Broadcasting** - Verifies messages reach all clients
+4. **Tracking** - Confirms correct client counting
+5. **Leave Room** - Tests leave notifications
 
-## 📊 Fluxo de Dados
+## 📊 Data Flow
 
 ```
-Cliente A                    Servidor                    Cliente B
+Client A                    Server                    Client B
     |                           |                           |
     |-- join_room(ABC123) ---->|                           |
     |<-- room_joined ----------|                           |
@@ -163,35 +163,35 @@ Cliente A                    Servidor                    Cliente B
     |                           |-- user_left ------------->|
 ```
 
-## 🔒 Segurança e Limitações
+## 🔒 Security and Limitations
 
-- **TTL Automático**: Salas expiram após 30 minutos de inatividade
-- **Limpeza Automática**: Salas vazias são removidas imediatamente
-- **Capacidade Limitada**: Máximo de 10 clientes por sala
-- **IDs Únicos**: RoomIds são gerados criptograficamente
-- **Validação**: Todas as operações são validadas no servidor
+- **Automatic TTL**: Rooms expire after 30 minutes of inactivity
+- **Automatic Cleanup**: Empty rooms are removed immediately
+- **Limited Capacity**: Maximum of 10 clients per room
+- **Unique IDs**: RoomIds are generated cryptographically
+- **Validation**: All operations are validated on the server
 
-## 🚀 Como Usar
+## 🚀 How to Use
 
-1. **Iniciar o servidor:**
+1. **Start the server:**
 
    ```bash
    npm run start:dev
    ```
 
-2. **Conectar via WebSocket:**
+2. **Connect via WebSocket:**
 
    ```javascript
    const ws = new WebSocket("ws://localhost:8080");
    ```
 
-3. **Criar ou entrar em uma sala:**
+3. **Create or join a room:**
 
    ```javascript
-   // Criar sala
+   // Create room
    ws.send(JSON.stringify({ type: "create_room" }));
 
-   // Entrar em sala existente
+   // Join existing room
    ws.send(
      JSON.stringify({
        type: "join_room",
@@ -200,14 +200,14 @@ Cliente A                    Servidor                    Cliente B
    );
    ```
 
-4. **Enviar mensagens:**
+4. **Send messages:**
    ```javascript
    ws.send(
      JSON.stringify({
        type: "message",
-       message: "Seus dados criptografados aqui",
+       message: "Your encrypted data here",
      })
    );
    ```
 
-Todas as funcionalidades solicitadas estão implementadas e testadas!
+All requested features are implemented and tested!

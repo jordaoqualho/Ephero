@@ -22,7 +22,7 @@ class MessageHandler {
 
     client.send({
       type: MESSAGE_TYPES.ERROR,
-      error: "Tipo de mensagem desconhecido",
+      error: "Unknown message type",
     });
   }
 
@@ -31,7 +31,7 @@ class MessageHandler {
     client.send({
       type: MESSAGE_TYPES.ROOM_CREATED,
       roomId: room.id,
-      message: `Sala ${room.id} criada com sucesso!`,
+      message: `Room ${room.id} created successfully!`,
     });
   }
 
@@ -54,7 +54,7 @@ class MessageHandler {
       client.send({
         type: MESSAGE_TYPES.ROOM_JOINED,
         roomId: data.roomId,
-        message: `Entrou na sala ${data.roomId}`,
+        message: `Joined room ${data.roomId}`,
         clientsCount: room.getClientCount(),
       });
     } else {
@@ -69,7 +69,7 @@ class MessageHandler {
     if (!client.isInRoom()) {
       client.send({
         type: MESSAGE_TYPES.ERROR,
-        error: "Você precisa estar em uma sala para enviar mensagens",
+        error: "You must be in a room to send messages",
       });
       return;
     }
@@ -101,7 +101,7 @@ class MessageHandler {
     client.leaveRoom();
     client.send({
       type: MESSAGE_TYPES.ROOM_LEFT,
-      message: "Você saiu da sala",
+      message: "You left the room",
     });
   }
 

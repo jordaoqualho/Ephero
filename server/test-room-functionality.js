@@ -7,7 +7,7 @@ class RoomFunctionalityTest {
   }
 
   async runTest() {
-    console.log("🧪 Testando funcionalidades de sala...\n");
+    console.log("🧪 Testing room functionality...\n");
 
     try {
       await this.testCreateRoom();
@@ -16,9 +16,9 @@ class RoomFunctionalityTest {
       await this.testClientTracking();
       await this.testLeaveRoom();
 
-      console.log("\n✅ Todos os testes passaram!");
+      console.log("\n✅ All tests passed!");
     } catch (error) {
-      console.error("\n❌ Teste falhou:", error.message);
+      console.error("\n❌ Test failed:", error.message);
     } finally {
       this.cleanup();
     }
@@ -30,18 +30,18 @@ class RoomFunctionalityTest {
       const client = { ws, name, messages: [] };
 
       ws.on("open", () => {
-        console.log(`[${name}] Conectado`);
+        console.log(`[${name}] Connected`);
         resolve(client);
       });
 
       ws.on("message", (data) => {
         const message = JSON.parse(data.toString());
         client.messages.push(message);
-        console.log(`[${name}] Recebeu: ${message.type}`);
+        console.log(`[${name}] Received: ${message.type}`);
       });
 
       ws.on("error", reject);
-      ws.on("close", () => console.log(`[${name}] Desconectado`));
+      ws.on("close", () => console.log(`[${name}] Disconnected`));
 
       client.send = (data) => {
         if (ws.readyState === 1) {
@@ -52,7 +52,7 @@ class RoomFunctionalityTest {
       client.waitForMessage = (type, timeout = 5000) => {
         return new Promise((resolve, reject) => {
           const timer = setTimeout(() => {
-            reject(new Error(`Timeout esperando mensagem ${type}`));
+            reject(new Error(`Timeout waiting for message ${type}`));
           }, timeout);
 
           const checkMessage = () => {
@@ -71,45 +71,45 @@ class RoomFunctionalityTest {
   }
 
   async testCreateRoom() {
-    console.log("📝 Teste 1: Criar sala");
+    console.log("📝 Test 1: Create room");
 
-    const client1 = await this.createClient("Cliente1");
+    const client1 = await this.createClient("Client1");
     this.clients.push(client1);
 
     client1.send({ type: "create_room" });
     const response = await client1.waitForMessage("room_created");
 
     this.roomId = response.roomId;
-    console.log(`✅ Sala criada: ${this.roomId}\n`);
+    console.log(`✅ Room created: ${this.roomId}\n`);
   }
 
   async testJoinRoom() {
-    console.log("🚪 Teste 2: Entrar em sala existente por roomId");
+    console.log("🚪 Test 2: Join existing room by roomId");
 
-    const client2 = await this.createClient("Cliente2");
+    const client2 = await this.createClient("Client2");
     this.clients.push(client2);
 
     client2.send({ type: "join_room", roomId: this.roomId });
     const response = await client2.waitForMessage("room_joined");
 
     if (response.roomId === this.roomId && response.clientsCount === 2) {
-      console.log("✅ Cliente2 entrou na sala com sucesso");
+      console.log("✅ Client2 successfully joined the room");
     } else {
-      throw new Error("Falha ao entrar na sala");
+      throw new Error("Failed to join room");
     }
     console.log("");
   }
 
   async testBroadcasting() {
-    console.log("📡 Teste 3: Broadcasting de mensagens");
+    console.log("📡 Test 3: Message broadcasting");
 
-    const client3 = await this.createClient("Cliente3");
+    const client3 = await this.createClient("Client3");
     this.clients.push(client3);
 
     client3.send({ type: "join_room", roomId: this.roomId });
     await client3.waitForMessage("room_joined");
 
-    const testMessage = "Olá, esta é uma mensagem de teste!";
+    const testMessage = "Hello, this is a test message!";
     client3.send({ type: "message", message: testMessage });
 
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -121,41 +121,41 @@ class RoomFunctionalityTest {
     const client2Received = client2.messages.some((m) => m.type === "message" && m.message === testMessage);
 
     if (client1Received && client2Received) {
-      console.log("✅ Broadcasting funcionando: todos os clientes receberam a mensagem");
+      console.log("✅ Broadcasting working: all clients received the message");
     } else {
-      throw new Error("Broadcasting falhou");
+      throw new Error("Broadcasting failed");
     }
     console.log("");
   }
 
   async testClientTracking() {
-    console.log("👥 Teste 4: Rastreamento de clientes na sala");
+    console.log("👥 Test 4: Client tracking in room");
 
-    const client4 = await this.createClient("Cliente4");
+    const client4 = await this.createClient("Client4");
     this.clients.push(client4);
 
     client4.send({ type: "join_room", roomId: this.roomId });
     const response = await client4.waitForMessage("room_joined");
 
     if (response.clientsCount === 4) {
-      console.log("✅ Rastreamento de clientes funcionando: 4 clientes na sala");
+      console.log("✅ Client tracking working: 4 clients in room");
     } else {
-      throw new Error(`Esperado 4 clientes, encontrado ${response.clientsCount}`);
+      throw new Error(`Expected 4 clients, found ${response.clientsCount}`);
     }
 
     const client1 = this.clients[0];
     const joinNotifications = client1.messages.filter((m) => m.type === "user_joined");
 
     if (joinNotifications.length >= 3) {
-      console.log("✅ Notificações de entrada funcionando");
+      console.log("✅ Join notifications working");
     } else {
-      throw new Error("Notificações de entrada não estão funcionando");
+      throw new Error("Join notifications not working");
     }
     console.log("");
   }
 
   async testLeaveRoom() {
-    console.log("👋 Teste 5: Sair da sala");
+    console.log("👋 Test 5: Leave room");
 
     const clientToLeave = this.clients[1];
     clientToLeave.send({ type: "leave_room" });
@@ -166,9 +166,9 @@ class RoomFunctionalityTest {
     const leaveNotification = otherClient.messages.find((m) => m.type === "user_left");
 
     if (leaveNotification) {
-      console.log("✅ Notificação de saída funcionando");
+      console.log("✅ Leave notification working");
     } else {
-      throw new Error("Notificação de saída não está funcionando");
+      throw new Error("Leave notification not working");
     }
     console.log("");
   }

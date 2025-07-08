@@ -11,7 +11,7 @@ class EpheroTestClient {
     this.ws = new WebSocket("ws://localhost:8080");
 
     this.ws.on("open", () => {
-      console.log(`[${this.name}] Conectado ao servidor`);
+      console.log(`[${this.name}] Connected to server`);
     });
 
     this.ws.on("message", (data) => {
@@ -20,11 +20,11 @@ class EpheroTestClient {
     });
 
     this.ws.on("close", () => {
-      console.log(`[${this.name}] Desconectado do servidor`);
+      console.log(`[${this.name}] Disconnected from server`);
     });
 
     this.ws.on("error", (error) => {
-      console.error(`[${this.name}] Erro:`, error);
+      console.error(`[${this.name}] Error:`, error);
     });
   }
 
@@ -42,7 +42,7 @@ class EpheroTestClient {
 
       case "room_joined":
         this.roomId = message.roomId;
-        console.log(`[${this.name}] ${message.message} (${message.clientsCount} usuários na sala)`);
+        console.log(`[${this.name}] ${message.message} (${message.clientsCount} users in room)`);
         break;
 
       case "room_left":
@@ -51,27 +51,27 @@ class EpheroTestClient {
         break;
 
       case "message":
-        console.log(`[${this.name}] Mensagem de ${message.userId}: ${message.message}`);
+        console.log(`[${this.name}] Message from ${message.userId}: ${message.message}`);
         break;
 
       case "user_joined":
-        console.log(`[${this.name}] Usuário ${message.userId} entrou na sala`);
+        console.log(`[${this.name}] User ${message.userId} joined the room`);
         break;
 
       case "user_left":
-        console.log(`[${this.name}] Usuário ${message.userId} saiu da sala`);
+        console.log(`[${this.name}] User ${message.userId} left the room`);
         break;
 
       case "rooms_list":
-        console.log(`[${this.name}] Salas ativas:`, message.rooms);
+        console.log(`[${this.name}] Active rooms:`, message.rooms);
         break;
 
       case "error":
-        console.error(`[${this.name}] Erro: ${message.error}`);
+        console.error(`[${this.name}] Error: ${message.error}`);
         break;
 
       default:
-        console.log(`[${this.name}] Mensagem desconhecida:`, message);
+        console.log(`[${this.name}] Unknown message:`, message);
     }
   }
 
@@ -99,7 +99,7 @@ class EpheroTestClient {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data));
     } else {
-      console.error(`[${this.name}] WebSocket não está conectado`);
+      console.error(`[${this.name}] WebSocket is not connected`);
     }
   }
 
@@ -112,14 +112,14 @@ class EpheroTestClient {
 
 // Example usage
 if (require.main === module) {
-  console.log("=== Cliente de Teste Ephero ===");
-  console.log("Comandos disponíveis:");
-  console.log("1. create - Criar uma nova sala");
-  console.log("2. join <roomId> - Entrar em uma sala");
-  console.log("3. message <text> - Enviar mensagem");
-  console.log("4. leave - Sair da sala");
-  console.log("5. rooms - Listar salas ativas");
-  console.log("6. quit - Sair do cliente");
+  console.log("=== Ephero Test Client ===");
+  console.log("Available commands:");
+  console.log("1. create - Create a new room");
+  console.log("2. join <roomId> - Join an existing room");
+  console.log("3. message <text> - Send a message");
+  console.log("4. leave - Leave the room");
+  console.log("5. rooms - List active rooms");
+  console.log("6. quit - Exit the client");
   console.log("");
 
   const client = new EpheroTestClient("TestClient");
@@ -145,7 +145,7 @@ if (require.main === module) {
         if (parts[1]) {
           client.joinRoom(parts[1]);
         } else {
-          console.log("Uso: join <roomId>");
+          console.log("Usage: join <roomId>");
         }
         break;
 
@@ -154,7 +154,7 @@ if (require.main === module) {
           const message = parts.slice(1).join(" ");
           client.sendMessage(message);
         } else {
-          console.log("Uso: message <text>");
+          console.log("Usage: message <text>");
         }
         break;
 
@@ -173,7 +173,7 @@ if (require.main === module) {
         break;
 
       default:
-        console.log("Comando desconhecido. Use: create, join, message, leave, rooms, ou quit");
+        console.log("Unknown command. Use: create, join, message, leave, rooms, or quit");
     }
   });
 }

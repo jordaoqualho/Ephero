@@ -32,12 +32,12 @@ class RoomService {
   addClientToRoom(roomId, client) {
     const room = this.getRoom(roomId);
     if (!room) {
-      return { success: false, error: "Sala não encontrada" };
+      return { success: false, error: "Room not found" };
     }
 
     const added = room.addClient(client);
     if (!added) {
-      return { success: false, error: "Sala cheia" };
+      return { success: false, error: "Room is full" };
     }
 
     return { success: true, room };

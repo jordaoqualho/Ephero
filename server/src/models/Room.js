@@ -34,7 +34,7 @@ class Room {
   broadcast(message, excludeClient = null) {
     const messageStr = JSON.stringify(message);
     this.clients.forEach((client) => {
-      if (client !== excludeClient && client.readyState === 1) {
+      if (client !== excludeClient && client.ws.readyState === 1) {
         client.send(messageStr);
       }
     });
