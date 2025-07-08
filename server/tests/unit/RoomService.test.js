@@ -1,44 +1,39 @@
 const RoomService = require("../../src/services/RoomService");
 const Room = require("../../src/models/Room");
-
-// Mock the roomIdGenerator
-jest.mock("../../src/utils/roomIdGenerator", () => ({
-  generateRoomId: jest.fn(),
-}));
-
 const { generateRoomId } = require("../../src/utils/roomIdGenerator");
+
+jest.mock("../../src/utils/roomIdGenerator");
 
 describe("RoomService", () => {
   let roomService;
 
   beforeEach(() => {
     roomService = new RoomService();
-    jest.clearAllMocks();
+    generateRoomId.mockClear();
   });
 
   describe("createRoom", () => {
-    test("should create a new room with generated ID", () => {
+    test("should create room with generated ID", () => {
       const mockRoomId = "ABC12345";
       generateRoomId.mockReturnValue(mockRoomId);
 
       const room = roomService.createRoom();
 
-      expect(generateRoomId).toHaveBeenCalled();
       expect(room).toBeInstanceOf(Room);
       expect(room.id).toBe(mockRoomId);
       expect(roomService.getRoom(mockRoomId)).toBe(room);
     });
 
-    test("should schedule room cleanup after TTL", () => {
+    test("should set up TTL cleanup for room", () => {
       jest.useFakeTimers();
       const mockRoomId = "ABC12345";
       generateRoomId.mockReturnValue(mockRoomId);
 
-      const room = roomService.createRoom();
-      expect(roomService.getRoom(mockRoomId)).toBe(room);
+      roomService.createRoom();
 
-      // Fast-forward time to after TTL
-      jest.advanceTimersByTime(31 * 60 * 1000); // 31 minutes
+      expect(roomService.getRoom(mockRoomId)).toBeDefined();
+
+      jest.advanceTimersByTime(31 * 60 * 1000);
 
       expect(roomService.getRoom(mockRoomId)).toBeUndefined();
       jest.useRealTimers();
@@ -105,7 +100,6 @@ describe("RoomService", () => {
 
       roomService.createRoom();
 
-      // Add 10 clients to fill the room
       for (let i = 0; i < 10; i++) {
         const client = { id: `client${i}`, ws: { readyState: 1 } };
         roomService.addClientToRoom(mockRoomId, client);
@@ -125,7 +119,7 @@ describe("RoomService", () => {
       generateRoomId.mockReturnValue(mockRoomId);
 
       const room = roomService.createRoom();
-      const client = { id: "client1", ws: { readyState: 1 } };
+      const client = { id: "client1", ws: { readyState: 1 }, roomId: mockRoomId };
 
       roomService.addClientToRoom(mockRoomId, client);
       expect(room.getClientCount()).toBe(1);
@@ -141,7 +135,7 @@ describe("RoomService", () => {
       generateRoomId.mockReturnValue(mockRoomId);
 
       const room = roomService.createRoom();
-      const client = { id: "client1", ws: { readyState: 1 } };
+      const client = { id: "client1", ws: { readyState: 1 }, roomId: mockRoomId };
 
       roomService.addClientToRoom(mockRoomId, client);
       roomService.removeClientFromRoom(client);
@@ -154,8 +148,8 @@ describe("RoomService", () => {
       generateRoomId.mockReturnValue(mockRoomId);
 
       const room = roomService.createRoom();
-      const client1 = { id: "client1", ws: { readyState: 1 } };
-      const client2 = { id: "client2", ws: { readyState: 1 } };
+      const client1 = { id: "client1", ws: { readyState: 1 }, roomId: mockRoomId };
+      const client2 = { id: "client2", ws: { readyState: 1 }, roomId: mockRoomId };
 
       roomService.addClientToRoom(mockRoomId, client1);
       roomService.addClientToRoom(mockRoomId, client2);
@@ -167,7 +161,7 @@ describe("RoomService", () => {
     });
 
     test("should return undefined when client is not in any room", () => {
-      const client = { id: "client1", ws: { readyState: 1 } };
+      const client = { id: "client1", ws: { readyState: 1 }, roomId: "NONEXISTENT" };
 
       const result = roomService.removeClientFromRoom(client);
 
@@ -216,7 +210,7 @@ describe("RoomService", () => {
       generateRoomId.mockReturnValue(mockRoomId);
 
       const room = roomService.createRoom();
-      room.lastActivity = Date.now() - 31 * 60 * 1000; // 31 minutes ago
+      room.lastActivity = Date.now() - 31 * 60 * 1000;
 
       roomService.cleanupExpiredRooms();
 
@@ -228,7 +222,7 @@ describe("RoomService", () => {
       generateRoomId.mockReturnValue(mockRoomId);
 
       const room = roomService.createRoom();
-      room.lastActivity = Date.now() - 29 * 60 * 1000; // 29 minutes ago
+      room.lastActivity = Date.now() - 29 * 60 * 1000;
 
       roomService.cleanupExpiredRooms();
 

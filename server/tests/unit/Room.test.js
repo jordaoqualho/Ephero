@@ -1,20 +1,20 @@
 const Room = require("../../src/models/Room");
 
-describe("Room Model", () => {
+describe("Room", () => {
   let room;
 
   beforeEach(() => {
     room = new Room("TEST123");
   });
 
-  describe("Constructor", () => {
+  describe("constructor", () => {
     test("should create room with correct properties", () => {
       expect(room.id).toBe("TEST123");
       expect(room.clients).toBeInstanceOf(Set);
+      expect(room.createdAt).toBeGreaterThan(0);
+      expect(room.lastActivity).toBeGreaterThan(0);
       expect(room.maxClients).toBe(10);
       expect(room.ttl).toBe(30 * 60 * 1000);
-      expect(room.createdAt).toBeLessThanOrEqual(Date.now());
-      expect(room.lastActivity).toBeLessThanOrEqual(Date.now());
     });
   });
 
@@ -29,7 +29,6 @@ describe("Room Model", () => {
     });
 
     test("should not add client when room is full", () => {
-      // Add 10 clients to fill the room
       for (let i = 0; i < 10; i++) {
         const client = { id: `client${i}`, ws: { readyState: 1 } };
         room.addClient(client);
@@ -47,7 +46,6 @@ describe("Room Model", () => {
       const originalActivity = room.lastActivity;
       const client = { id: "client1", ws: { readyState: 1 } };
 
-      // Wait a bit to ensure timestamp difference
       setTimeout(() => {
         room.addClient(client);
         expect(room.lastActivity).toBeGreaterThan(originalActivity);
@@ -62,7 +60,7 @@ describe("Room Model", () => {
 
       const result = room.removeClient(client);
 
-      expect(result).toBe(true); // Room is now empty
+      expect(result).toBe(true);
       expect(room.clients.has(client)).toBe(false);
       expect(room.getClientCount()).toBe(0);
     });
@@ -76,7 +74,9 @@ describe("Room Model", () => {
 
       const result = room.removeClient(client1);
 
-      expect(result).toBe(false); // Room still has client2
+      expect(result).toBe(false);
+      expect(room.clients.has(client1)).toBe(false);
+      expect(room.clients.has(client2)).toBe(true);
       expect(room.getClientCount()).toBe(1);
     });
 
@@ -85,7 +85,6 @@ describe("Room Model", () => {
       room.addClient(client);
 
       const originalActivity = room.lastActivity;
-
       setTimeout(() => {
         room.removeClient(client);
         expect(room.lastActivity).toBeGreaterThan(originalActivity);
@@ -94,13 +93,14 @@ describe("Room Model", () => {
   });
 
   describe("isExpired", () => {
-    test("should return false for new room", () => {
-      expect(room.isExpired()).toBe(false);
+    test("should return true for expired room", () => {
+      room.lastActivity = Date.now() - 31 * 60 * 1000;
+      expect(room.isExpired()).toBe(true);
     });
 
-    test("should return true for expired room", () => {
-      room.lastActivity = Date.now() - 31 * 60 * 1000; // 31 minutes ago
-      expect(room.isExpired()).toBe(true);
+    test("should return false for non-expired room", () => {
+      room.lastActivity = Date.now() - 29 * 60 * 1000;
+      expect(room.isExpired()).toBe(false);
     });
   });
 
@@ -116,11 +116,14 @@ describe("Room Model", () => {
 
       room.addClient(client2);
       expect(room.getClientCount()).toBe(2);
+
+      room.removeClient(client1);
+      expect(room.getClientCount()).toBe(1);
     });
   });
 
   describe("broadcast", () => {
-    test("should send message to all clients except excluded", () => {
+    test("should send message to all clients except excluded one", () => {
       const client1 = { id: "client1", ws: { readyState: 1 }, send: jest.fn() };
       const client2 = { id: "client2", ws: { readyState: 1 }, send: jest.fn() };
       const client3 = { id: "client3", ws: { readyState: 1 }, send: jest.fn() };
@@ -139,7 +142,7 @@ describe("Room Model", () => {
 
     test("should not send to disconnected clients", () => {
       const client1 = { id: "client1", ws: { readyState: 1 }, send: jest.fn() };
-      const client2 = { id: "client2", ws: { readyState: 3 }, send: jest.fn() }; // CLOSED
+      const client2 = { id: "client2", ws: { readyState: 0 }, send: jest.fn() };
 
       room.addClient(client1);
       room.addClient(client2);

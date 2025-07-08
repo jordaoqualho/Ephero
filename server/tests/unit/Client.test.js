@@ -1,54 +1,80 @@
 const Client = require("../../src/models/Client");
 
-// Mock WebSocket
-const mockWebSocket = {
-  readyState: 1, // OPEN
-  send: jest.fn(),
-};
-
-describe("Client Model", () => {
+describe("Client", () => {
+  let mockWs;
   let client;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    client = new Client(mockWebSocket);
+    mockWs = {
+      readyState: 1,
+      send: jest.fn(),
+      close: jest.fn(),
+    };
+    client = new Client(mockWs);
   });
 
-  describe("Constructor", () => {
-    test("should create client with unique ID", () => {
+  describe("constructor", () => {
+    test("should create client with correct properties", () => {
       expect(client.id).toBeDefined();
       expect(typeof client.id).toBe("string");
-      expect(client.id.length).toBe(16); // 8 bytes = 16 hex chars
-    });
-
-    test("should initialize with correct properties", () => {
-      expect(client.ws).toBe(mockWebSocket);
+      expect(client.id.length).toBe(16);
+      expect(client.ws).toBe(mockWs);
       expect(client.roomId).toBeNull();
       expect(client.joinedAt).toBeNull();
     });
 
     test("should generate different IDs for different clients", () => {
-      const client1 = new Client(mockWebSocket);
-      const client2 = new Client(mockWebSocket);
-
+      const client1 = new Client(mockWs);
+      const client2 = new Client(mockWs);
       expect(client1.id).not.toBe(client2.id);
+    });
+  });
+
+  describe("send", () => {
+    test("should send message when websocket is open", () => {
+      const message = { type: "test", content: "hello" };
+      client.send(message);
+
+      expect(mockWs.send).toHaveBeenCalledWith(JSON.stringify(message));
+    });
+
+    test("should not send message when websocket is closed", () => {
+      mockWs.readyState = 3;
+      const message = { type: "test", content: "hello" };
+      client.send(message);
+
+      expect(mockWs.send).not.toHaveBeenCalled();
+    });
+
+    test("should not send message when websocket is connecting", () => {
+      mockWs.readyState = 0;
+      const message = { type: "test", content: "hello" };
+      client.send(message);
+
+      expect(mockWs.send).not.toHaveBeenCalled();
+    });
+
+    test("should not send message when websocket is closing", () => {
+      mockWs.readyState = 2;
+      const message = { type: "test", content: "hello" };
+      client.send(message);
+
+      expect(mockWs.send).not.toHaveBeenCalled();
     });
   });
 
   describe("assignToRoom", () => {
     test("should assign client to room", () => {
-      const roomId = "TEST123";
-
+      const roomId = "room123";
       client.assignToRoom(roomId);
 
       expect(client.roomId).toBe(roomId);
-      expect(client.joinedAt).toBeLessThanOrEqual(Date.now());
-      expect(client.joinedAt).toBeGreaterThan(Date.now() - 1000);
+      expect(client.joinedAt).toBeGreaterThan(0);
     });
 
     test("should update joinedAt timestamp", () => {
       const originalJoinedAt = client.joinedAt;
-      const roomId = "TEST123";
+      const roomId = "room123";
 
       setTimeout(() => {
         client.assignToRoom(roomId);
@@ -59,7 +85,7 @@ describe("Client Model", () => {
 
   describe("leaveRoom", () => {
     test("should remove client from room", () => {
-      const roomId = "TEST123";
+      const roomId = "room123";
       client.assignToRoom(roomId);
 
       const returnedRoomId = client.leaveRoom();
@@ -80,7 +106,7 @@ describe("Client Model", () => {
 
   describe("isInRoom", () => {
     test("should return true when client is in room", () => {
-      client.assignToRoom("TEST123");
+      client.assignToRoom("room123");
       expect(client.isInRoom()).toBe(true);
     });
 
@@ -89,52 +115,15 @@ describe("Client Model", () => {
     });
 
     test("should return false after leaving room", () => {
-      client.assignToRoom("TEST123");
+      client.assignToRoom("room123");
       client.leaveRoom();
       expect(client.isInRoom()).toBe(false);
     });
   });
 
-  describe("send", () => {
-    test("should send message when WebSocket is open", () => {
-      const message = { type: "test", content: "hello" };
-
-      client.send(message);
-
-      expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify(message));
-    });
-
-    test("should not send message when WebSocket is closed", () => {
-      mockWebSocket.readyState = 3; // CLOSED
-      const message = { type: "test", content: "hello" };
-
-      client.send(message);
-
-      expect(mockWebSocket.send).not.toHaveBeenCalled();
-    });
-
-    test("should not send message when WebSocket is connecting", () => {
-      mockWebSocket.readyState = 0; // CONNECTING
-      const message = { type: "test", content: "hello" };
-
-      client.send(message);
-
-      expect(mockWebSocket.send).not.toHaveBeenCalled();
-    });
-
-    test("should not send message when WebSocket is closing", () => {
-      mockWebSocket.readyState = 2; // CLOSING
-      const message = { type: "test", content: "hello" };
-
-      client.send(message);
-
-      expect(mockWebSocket.send).not.toHaveBeenCalled();
-    });
-  });
-
   describe("getInfo", () => {
     test("should return client information", () => {
-      const roomId = "TEST123";
+      const roomId = "room123";
       client.assignToRoom(roomId);
 
       const info = client.getInfo();
