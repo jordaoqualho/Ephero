@@ -1,0 +1,27 @@
+{
+  "name": "ephero",
+  "version": "1.0.0",
+  "description": "🔐 Secure ephemeral sharing tool for sensitive data (passwords, files, etc). No storage. WebSocket + WebRTC.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jordaoqualho/Ephero.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jordaoqualho/Ephero/issues"
+  },
+  "homepage": "https://github.com/jordaoqualho/Ephero#readme",
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}
