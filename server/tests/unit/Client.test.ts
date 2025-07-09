@@ -19,7 +19,7 @@ describe("Client", () => {
   describe("constructor", () => {
     test("should create client with unique ID", () => {
       expect(client.id).toBeDefined();
-      expect(client.id).toHaveLength(18);
+      expect(client.id).toHaveLength(16);
       expect(client.roomId).toBeNull();
       expect(client.ws).toBe(mockWs);
     });
