@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "name": "ephero-server",
   "version": "1.0.0",
   "description": "Ephemeral WebSocket server for real-time communication",
