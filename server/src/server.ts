@@ -71,7 +71,9 @@ export class EpheroServer implements IEpheroServer {
 
   stop(): void {
     if (this.wss) {
-      this.wss.close();
+      this.wss.close(() => {
+        this.wss = null;
+      });
     }
   }
 }
