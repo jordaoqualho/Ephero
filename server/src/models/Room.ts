@@ -1,4 +1,4 @@
-import { IClient, IRoom } from "../types";
+import { IClient, IRoom, MessageType } from "../types";
 
 export class Room implements IRoom {
   public id: string;
@@ -42,7 +42,7 @@ export class Room implements IRoom {
     return this.clients.size;
   }
 
-  broadcast(message: any, excludeClient: IClient | null = null): void {
+  broadcast(message: MessageType, excludeClient: IClient | null = null): void {
     this.clients.forEach((client) => {
       if (client !== excludeClient && client.ws.readyState === 1) {
         client.send(message);

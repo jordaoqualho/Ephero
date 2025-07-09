@@ -8,7 +8,7 @@ export interface IClient {
   assignToRoom(roomId: string): void;
   leaveRoom(): string | null;
   isInRoom(): boolean;
-  send(message: any): void;
+  send(message: MessageType): void;
   getInfo(): IClientInfo;
 }
 
@@ -29,7 +29,7 @@ export interface IRoom {
   removeClient(client: IClient): boolean;
   isExpired(): boolean;
   getClientCount(): number;
-  broadcast(message: any, excludeClient?: IClient | null): void;
+  broadcast(message: MessageType, excludeClient?: IClient | null): void;
 }
 
 export interface IRoomService {
@@ -61,17 +61,17 @@ export interface IClientService {
 export interface IMessageHandler {
   roomService: IRoomService;
   clientService: IClientService;
-  handleMessage(client: IClient, data: any): void;
+  handleMessage(client: IClient, data: IMessageData): void;
   handleCreateRoom(client: IClient): void;
-  handleJoinRoom(client: IClient, data: any): void;
+  handleJoinRoom(client: IClient, data: IMessageData): void;
   handleLeaveRoom(client: IClient): void;
   handleGetRooms(client: IClient): void;
-  handleBroadcastMessage(client: IClient, data: any): void;
+  handleBroadcastMessage(client: IClient, data: IMessageData): void;
 }
 
 export interface IEpheroServer {
   port: number;
-  wss: any;
+  wss: unknown;
   roomService: IRoomService;
   clientService: IClientService;
   messageHandler: IMessageHandler;
@@ -79,14 +79,13 @@ export interface IEpheroServer {
   stop(): void;
   setupClientHandlers(client: IClient): void;
   handleClientDisconnect(client: IClient): void;
-  handleClientError(client: IClient, error: any): void;
+  handleClientError(client: IClient, error: Error): void;
 }
 
 export interface IMessageData {
   type: string;
   roomId?: string;
   message?: string;
-  [key: string]: any;
 }
 
 export interface IWelcomeMessage {

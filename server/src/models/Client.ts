@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import { WebSocket } from "ws";
-import { IClient, IClientInfo } from "../types";
+import { IClient, IClientInfo, MessageType } from "../types";
 
 export class Client implements IClient {
   public id: string;
@@ -31,7 +31,7 @@ export class Client implements IClient {
     return this.roomId !== null;
   }
 
-  send(message: any): void {
+  send(message: MessageType): void {
     if (this.ws.readyState === 1) {
       this.ws.send(JSON.stringify(message));
     }
