@@ -41,7 +41,7 @@ export class RoomService implements IRoomService {
     if (!added) {
       return { success: false, error: "Room is full" };
     }
-    (client as any).roomId = roomId;
+    client.roomId = roomId;
     return { success: true, room };
   }
 
@@ -55,7 +55,7 @@ export class RoomService implements IRoomService {
       return undefined;
     }
     const isEmpty = room.removeClient(client);
-    (client as any).roomId = null;
+    client.roomId = null;
     if (isEmpty) {
       this.removeRoom(roomId);
     }

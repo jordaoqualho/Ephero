@@ -11,7 +11,7 @@ export class MessageHandler implements IMessageHandler {
   }
 
   handleMessage(client: IClient, data: IMessageData): void {
-    const handlers: Record<string, (client: IClient, data?: any) => void> = {
+    const handlers: Record<string, (client: IClient, data: IMessageData) => void> = {
       [MESSAGE_TYPES.CREATE_ROOM]: (client) => this.handleCreateRoom(client),
       [MESSAGE_TYPES.JOIN_ROOM]: (client, data) => this.handleJoinRoom(client, data),
       [MESSAGE_TYPES.LEAVE_ROOM]: (client) => this.handleLeaveRoom(client),
