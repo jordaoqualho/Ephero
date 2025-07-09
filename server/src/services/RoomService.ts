@@ -1,12 +1,15 @@
-const Room = require("../models/Room");
-const { generateRoomId } = require("../utils/roomIdGenerator");
+import { Room } from "../models/Room";
+import { IClient, IRoom, IRoomInfo, IRoomService } from "../types";
+import { generateRoomId } from "../utils/roomIdGenerator";
 
-class RoomService {
+export class RoomService implements IRoomService {
+  public rooms: Map<string, IRoom>;
+
   constructor() {
     this.rooms = new Map();
   }
 
-  createRoom() {
+  createRoom(): IRoom {
     const roomId = generateRoomId();
     const room = new Room(roomId);
 
@@ -21,18 +24,22 @@ class RoomService {
     return room;
   }
 
-  getRoom(roomId) {
+  getRoom(roomId: string): IRoom | undefined {
     return this.rooms.get(roomId);
   }
 
-  removeRoom(roomId) {
+  removeRoom(roomId: string): void {
     this.rooms.delete(roomId);
   }
 
-  addClientToRoom(roomId, client) {
+  addClientToRoom(roomId: string, client: IClient): { success: boolean; room?: IRoom; error?: string } {
     const room = this.getRoom(roomId);
     if (!room) {
       return { success: false, error: "Room not found" };
+    }
+
+    if (client.roomId) {
+      return { success: false, error: "Client is already in a room" };
     }
 
     const added = room.addClient(client);
@@ -43,9 +50,15 @@ class RoomService {
     return { success: true, room };
   }
 
-  removeClientFromRoom(client) {
+  removeClientFromRoom(client: IClient): IRoom | undefined {
+    if (!client.roomId) {
+      return undefined;
+    }
+
     const room = this.getRoom(client.roomId);
-    if (!room) return;
+    if (!room) {
+      return undefined;
+    }
 
     const isEmpty = room.removeClient(client);
     if (isEmpty) {
@@ -55,9 +68,9 @@ class RoomService {
     return room;
   }
 
-  getActiveRooms() {
+  getActiveRooms(): IRoomInfo[] {
     return Array.from(this.rooms.keys()).map((roomId) => {
-      const room = this.rooms.get(roomId);
+      const room = this.rooms.get(roomId)!;
       return {
         id: roomId,
         clientsCount: room.getClientCount(),
@@ -66,7 +79,7 @@ class RoomService {
     });
   }
 
-  cleanupExpiredRooms() {
+  cleanupExpiredRooms(): void {
     for (const [roomId, room] of this.rooms.entries()) {
       if (room.isExpired()) {
         this.rooms.delete(roomId);
@@ -74,5 +87,3 @@ class RoomService {
     }
   }
 }
-
-module.exports = RoomService;
