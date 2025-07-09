@@ -1,0 +1,29 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "ws",
+    "ts",
+    "Ephero",
+    "ephemeral",
+    "websocket",
+    "websockets",
+    "roomid",
+    "roomids",
+    "clientid",
+    "clientids",
+    "wss",
+    "ttl",
+    "cleanup",
+    "broadcast",
+    "broadcasting",
+    "roomId",
+    "clientId",
+    "roomService",
+    "clientService",
+    "messageHandler",
+    "epheroServer"
+  ],
+  "ignoreWords": [],
+  "ignorePaths": ["node_modules/**", "dist/**", "build/**", "coverage/**", "*.log"]
+}
