@@ -7,14 +7,17 @@ export class Room implements IRoom {
   public lastActivity: number;
   public maxClients: number;
   public ttl: number;
+  private activityTimeout: ReturnType<typeof setTimeout> | null;
 
-  constructor(id: string) {
+  constructor(id: string, ttl: number = 30 * 60 * 1000) {
     this.id = id;
     this.clients = new Set();
     this.createdAt = Date.now();
     this.lastActivity = Date.now();
     this.maxClients = 10;
-    this.ttl = 30 * 60 * 1000;
+    this.ttl = ttl;
+    this.activityTimeout = null;
+    this.scheduleExpiration();
   }
 
   addClient(client: IClient): boolean {
@@ -23,19 +26,38 @@ export class Room implements IRoom {
     }
     this.clients.add(client);
     client.roomId = this.id;
-    this.lastActivity = Date.now();
+    this.updateActivity();
     return true;
   }
 
   removeClient(client: IClient): boolean {
     this.clients.delete(client);
     client.roomId = null;
-    this.lastActivity = Date.now();
+    this.updateActivity();
     return this.clients.size === 0;
   }
 
+  updateActivity(): void {
+    this.lastActivity = Date.now();
+    this.scheduleExpiration();
+  }
+
+  private scheduleExpiration(): void {
+    if (this.activityTimeout) {
+      clearTimeout(this.activityTimeout);
+    }
+
+    this.activityTimeout = setTimeout(() => {
+      this.markForExpiration();
+    }, this.ttl);
+  }
+
+  private markForExpiration(): void {
+    this.lastActivity = 0;
+  }
+
   isExpired(): boolean {
-    return Date.now() - this.lastActivity > this.ttl;
+    return this.lastActivity === 0 || Date.now() - this.lastActivity > this.ttl;
   }
 
   getClientCount(): number {
@@ -48,5 +70,30 @@ export class Room implements IRoom {
         client.send(message);
       }
     });
+    this.updateActivity();
+  }
+
+  destroy(): void {
+    if (this.activityTimeout) {
+      clearTimeout(this.activityTimeout);
+      this.activityTimeout = null;
+    }
+    this.clients.forEach((client) => {
+      if (client.ws.readyState === 1) {
+        client.send({
+          type: "error",
+          error: "Room has expired due to inactivity",
+        });
+      }
+      client.roomId = null;
+    });
+    this.clients.clear();
+  }
+
+  getTimeUntilExpiration(): number {
+    if (this.isExpired()) {
+      return 0;
+    }
+    return Math.max(0, this.ttl - (Date.now() - this.lastActivity));
   }
 }
