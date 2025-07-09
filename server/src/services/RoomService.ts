@@ -12,15 +12,12 @@ export class RoomService implements IRoomService {
   createRoom(): IRoom {
     const roomId = generateRoomId();
     const room = new Room(roomId);
-
     this.rooms.set(roomId, room);
-
     setTimeout(() => {
       if (this.rooms.has(roomId)) {
         this.rooms.delete(roomId);
       }
     }, room.ttl);
-
     return room;
   }
 
@@ -37,16 +34,14 @@ export class RoomService implements IRoomService {
     if (!room) {
       return { success: false, error: "Room not found" };
     }
-
     if (client.roomId) {
       return { success: false, error: "Client is already in a room" };
     }
-
     const added = room.addClient(client);
     if (!added) {
       return { success: false, error: "Room is full" };
     }
-
+    (client as any).roomId = roomId;
     return { success: true, room };
   }
 
@@ -54,17 +49,16 @@ export class RoomService implements IRoomService {
     if (!client.roomId) {
       return undefined;
     }
-
-    const room = this.getRoom(client.roomId);
+    const roomId = client.roomId;
+    const room = this.getRoom(roomId);
     if (!room) {
       return undefined;
     }
-
     const isEmpty = room.removeClient(client);
+    (client as any).roomId = null;
     if (isEmpty) {
-      this.removeRoom(client.roomId);
+      this.removeRoom(roomId);
     }
-
     return room;
   }
 

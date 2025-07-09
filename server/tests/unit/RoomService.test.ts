@@ -50,7 +50,15 @@ describe("RoomService", () => {
     test("should add client to room successfully", () => {
       const room = roomService.createRoom();
       const mockWs = { readyState: 1, send: jest.fn() } as any;
-      const client = { id: "test-client", ws: mockWs, roomId: null } as any;
+      const client = {
+        id: "test-client",
+        ws: mockWs,
+        roomId: null,
+        send: jest.fn(),
+        isInRoom: jest.fn(() => false),
+        assignToRoom: jest.fn(),
+        leaveRoom: jest.fn(),
+      } as any;
 
       const result = roomService.addClientToRoom(room.id, client);
 
@@ -62,7 +70,15 @@ describe("RoomService", () => {
 
     test("should fail when room does not exist", () => {
       const mockWs = { readyState: 1, send: jest.fn() } as any;
-      const client = { id: "test-client", ws: mockWs, roomId: null } as any;
+      const client = {
+        id: "test-client",
+        ws: mockWs,
+        roomId: null,
+        send: jest.fn(),
+        isInRoom: jest.fn(() => false),
+        assignToRoom: jest.fn(),
+        leaveRoom: jest.fn(),
+      } as any;
 
       const result = roomService.addClientToRoom("NON_EXISTENT", client);
 
@@ -75,7 +91,15 @@ describe("RoomService", () => {
       const room1 = roomService.createRoom();
       const room2 = roomService.createRoom();
       const mockWs = { readyState: 1, send: jest.fn() } as any;
-      const client = { id: "test-client", ws: mockWs, roomId: room1.id } as any;
+      const client = {
+        id: "test-client",
+        ws: mockWs,
+        roomId: room1.id,
+        send: jest.fn(),
+        isInRoom: jest.fn(() => true),
+        assignToRoom: jest.fn(),
+        leaveRoom: jest.fn(),
+      } as any;
 
       const result = roomService.addClientToRoom(room2.id, client);
 
@@ -89,9 +113,18 @@ describe("RoomService", () => {
     test("should remove client from room", () => {
       const room = roomService.createRoom();
       const mockWs = { readyState: 1, send: jest.fn() } as any;
-      const client = { id: "test-client", ws: mockWs, roomId: room.id } as any;
+      const client = {
+        id: "test-client",
+        ws: mockWs,
+        roomId: room.id,
+        send: jest.fn(),
+        isInRoom: jest.fn(() => true),
+        assignToRoom: jest.fn(),
+        leaveRoom: jest.fn(),
+      } as any;
 
-      roomService.addClientToRoom(room.id, client);
+      // Add client to room first
+      room.addClient(client);
       expect(room.getClientCount()).toBe(1);
 
       roomService.removeClientFromRoom(client);
@@ -103,9 +136,18 @@ describe("RoomService", () => {
     test("should remove room when last client leaves", () => {
       const room = roomService.createRoom();
       const mockWs = { readyState: 1, send: jest.fn() } as any;
-      const client = { id: "test-client", ws: mockWs, roomId: room.id } as any;
+      const client = {
+        id: "test-client",
+        ws: mockWs,
+        roomId: room.id,
+        send: jest.fn(),
+        isInRoom: jest.fn(() => true),
+        assignToRoom: jest.fn(),
+        leaveRoom: jest.fn(),
+      } as any;
 
-      roomService.addClientToRoom(room.id, client);
+      // Add client to room first
+      room.addClient(client);
       roomService.removeClientFromRoom(client);
 
       expect(roomService.getRoom(room.id)).toBeUndefined();
@@ -113,7 +155,15 @@ describe("RoomService", () => {
 
     test("should handle client not in room", () => {
       const mockWs = { readyState: 1, send: jest.fn() } as any;
-      const client = { id: "test-client", ws: mockWs, roomId: null } as any;
+      const client = {
+        id: "test-client",
+        ws: mockWs,
+        roomId: null,
+        send: jest.fn(),
+        isInRoom: jest.fn(() => false),
+        assignToRoom: jest.fn(),
+        leaveRoom: jest.fn(),
+      } as any;
 
       // Should not throw error
       expect(() => roomService.removeClientFromRoom(client)).not.toThrow();
