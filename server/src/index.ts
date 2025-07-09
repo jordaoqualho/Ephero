@@ -1,7 +1,8 @@
 import { EpheroServer } from "./server";
 
 const port = parseInt(process.env["PORT"] || "8080", 10);
-const server = new EpheroServer(port);
+const defaultTTL = parseInt(process.env["ROOM_TTL_MINUTES"] || "30", 10) * 60 * 1000;
+const server = new EpheroServer(port, defaultTTL);
 
 process.on("SIGINT", () => {
   console.log("\nShutting down server...");
@@ -15,4 +16,6 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
+console.log(`🚀 Starting Ephero server on port ${port}`);
+console.log(`⏰ Room TTL: ${defaultTTL / (60 * 1000)} minutes`);
 server.start();

@@ -1,4 +1,4 @@
-import { WebSocket, Server as WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import { ClientService } from "./services/ClientService";
 import { MessageHandler } from "./services/MessageHandler";
 import { RoomService } from "./services/RoomService";
@@ -11,10 +11,10 @@ export class EpheroServer implements IEpheroServer {
   public clientService: ClientService;
   public messageHandler: MessageHandler;
 
-  constructor(port: number = 8080) {
+  constructor(port: number = 8080, defaultTTL: number = 30 * 60 * 1000) {
     this.port = port;
     this.wss = null;
-    this.roomService = new RoomService();
+    this.roomService = new RoomService(defaultTTL);
     this.clientService = new ClientService();
     this.messageHandler = new MessageHandler(this.roomService, this.clientService);
   }
@@ -29,10 +29,6 @@ export class EpheroServer implements IEpheroServer {
 
       this.setupClientHandlers(client);
     });
-
-    setInterval(() => {
-      this.roomService.cleanupExpiredRooms();
-    }, 60000);
 
     console.log(`WebSocket server running at ws://localhost:${this.port}`);
   }
@@ -76,5 +72,6 @@ export class EpheroServer implements IEpheroServer {
         this.wss = null;
       });
     }
+    this.roomService.destroy();
   }
 }
