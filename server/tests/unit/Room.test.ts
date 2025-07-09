@@ -1,6 +1,7 @@
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { WebSocket } from "ws";
 import { Room } from "../../src/models/Room";
 import { IRoom } from "../../src/types";
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 
 describe("Room", () => {
   let room: IRoom;
@@ -22,7 +23,7 @@ describe("Room", () => {
 
   describe("addClient", () => {
     test("should add client successfully", () => {
-      const client = { id: "client1", ws: { readyState: 1 } } as any;
+      const client = { id: "client1", ws: { readyState: 1 } as unknown as WebSocket } as IRoom["clients"][0];
       const result = room.addClient(client);
 
       expect(result).toBe(true);
@@ -32,11 +33,11 @@ describe("Room", () => {
 
     test("should not add client when room is full", () => {
       for (let i = 0; i < 10; i++) {
-        const client = { id: `client${i}`, ws: { readyState: 1 } } as any;
+        const client = { id: `client${i}`, ws: { readyState: 1 } as IRoom["clients"][0] };
         room.addClient(client);
       }
 
-      const extraClient = { id: "client11", ws: { readyState: 1 } } as any;
+      const extraClient = { id: "client11", ws: { readyState: 1 } as IRoom["clients"][0] };
       const result = room.addClient(extraClient);
 
       expect(result).toBe(false);
@@ -46,7 +47,7 @@ describe("Room", () => {
 
     test("should update lastActivity when adding client", () => {
       const originalActivity = room.lastActivity;
-      const client = { id: "client1", ws: { readyState: 1 } } as any;
+      const client = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
 
       setTimeout(() => {
         room.addClient(client);
@@ -57,7 +58,7 @@ describe("Room", () => {
 
   describe("removeClient", () => {
     test("should remove client successfully", () => {
-      const client = { id: "client1", ws: { readyState: 1 } } as any;
+      const client = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
       room.addClient(client);
 
       const result = room.removeClient(client);
@@ -68,8 +69,8 @@ describe("Room", () => {
     });
 
     test("should return false when room is not empty after removal", () => {
-      const client1 = { id: "client1", ws: { readyState: 1 } } as any;
-      const client2 = { id: "client2", ws: { readyState: 1 } } as any;
+      const client1 = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
+      const client2 = { id: "client2", ws: { readyState: 1 } as IRoom["clients"][0] };
 
       room.addClient(client1);
       room.addClient(client2);
@@ -83,7 +84,7 @@ describe("Room", () => {
     });
 
     test("should update lastActivity when removing client", () => {
-      const client = { id: "client1", ws: { readyState: 1 } } as any;
+      const client = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
       room.addClient(client);
 
       const originalActivity = room.lastActivity;
@@ -110,8 +111,8 @@ describe("Room", () => {
     test("should return correct client count", () => {
       expect(room.getClientCount()).toBe(0);
 
-      const client1 = { id: "client1", ws: { readyState: 1 } } as any;
-      const client2 = { id: "client2", ws: { readyState: 1 } } as any;
+      const client1 = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
+      const client2 = { id: "client2", ws: { readyState: 1 } as IRoom["clients"][0] };
 
       room.addClient(client1);
       expect(room.getClientCount()).toBe(1);
@@ -126,9 +127,13 @@ describe("Room", () => {
 
   describe("broadcast", () => {
     test("should send message to all clients except excluded one", () => {
-      const client1 = { id: "client1", ws: { readyState: 1 }, send: jest.fn() } as any;
-      const client2 = { id: "client2", ws: { readyState: 1 }, send: jest.fn() } as any;
-      const client3 = { id: "client3", ws: { readyState: 1 }, send: jest.fn() } as any;
+      const client1 = {
+        id: "client1",
+        ws: { readyState: 1 } as unknown as WebSocket,
+        send: jest.fn(),
+      } as IRoom["clients"][0];
+      const client2 = { id: "client2", ws: { readyState: 1 } as WebSocket, send: jest.fn() } as IRoom["clients"][0];
+      const client3 = { id: "client3", ws: { readyState: 1 } as WebSocket, send: jest.fn() } as IRoom["clients"][0];
 
       room.addClient(client1);
       room.addClient(client2);
@@ -143,8 +148,12 @@ describe("Room", () => {
     });
 
     test("should not send to disconnected clients", () => {
-      const client1 = { id: "client1", ws: { readyState: 1 }, send: jest.fn() } as any;
-      const client2 = { id: "client2", ws: { readyState: 0 }, send: jest.fn() } as any;
+      const client1 = {
+        id: "client1",
+        ws: { readyState: 1 } as unknown as WebSocket,
+        send: jest.fn(),
+      } as IRoom["clients"][0];
+      const client2 = { id: "client2", ws: { readyState: 0 } as WebSocket, send: jest.fn() } as IRoom["clients"][0];
 
       room.addClient(client1);
       room.addClient(client2);

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { WebSocket } from "ws";
 import { EpheroServer } from "../../src/server";
 import { ClientService } from "../../src/services/ClientService";
 import { MessageHandler } from "../../src/services/MessageHandler";
@@ -24,7 +25,7 @@ describe("Room Functionality Integration Tests", () => {
 
   describe("Room Creation and Management", () => {
     test("should create room and add client", () => {
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = clientService.createClient(mockWs);
 
       const room = roomService.createRoom();
@@ -41,7 +42,7 @@ describe("Room Functionality Integration Tests", () => {
       const clients: IClient[] = [];
 
       for (let i = 0; i < 3; i++) {
-        const mockWs = { readyState: 1, send: jest.fn() } as any;
+        const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
         const client = clientService.createClient(mockWs);
         const result = roomService.addClientToRoom(room.id, client);
         expect(result.success).toBe(true);
@@ -54,7 +55,7 @@ describe("Room Functionality Integration Tests", () => {
 
     test("should remove room when last client leaves", () => {
       const room = roomService.createRoom();
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = clientService.createClient(mockWs);
 
       roomService.addClientToRoom(room.id, client);
@@ -67,7 +68,7 @@ describe("Room Functionality Integration Tests", () => {
 
   describe("Message Handling", () => {
     test("should handle create room message", () => {
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = clientService.createClient(mockWs);
 
       messageHandler.handleCreateRoom(client);
@@ -79,7 +80,7 @@ describe("Room Functionality Integration Tests", () => {
 
     test("should handle join room message", () => {
       const room = roomService.createRoom();
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = clientService.createClient(mockWs);
 
       const messageData: IMessageData = { type: "join_room", roomId: room.id };
@@ -92,7 +93,7 @@ describe("Room Functionality Integration Tests", () => {
 
     test("should handle leave room message", () => {
       const room = roomService.createRoom();
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = clientService.createClient(mockWs);
 
       roomService.addClientToRoom(room.id, client);
@@ -105,8 +106,8 @@ describe("Room Functionality Integration Tests", () => {
 
     test("should handle broadcast message", () => {
       const room = roomService.createRoom();
-      const mockWs1 = { readyState: 1, send: jest.fn() } as any;
-      const mockWs2 = { readyState: 1, send: jest.fn() } as any;
+      const mockWs1 = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
+      const mockWs2 = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client1 = clientService.createClient(mockWs1);
       const client2 = clientService.createClient(mockWs2);
 
@@ -143,7 +144,7 @@ describe("Room Functionality Integration Tests", () => {
 
   describe("Error Handling", () => {
     test("should handle invalid room join", () => {
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = clientService.createClient(mockWs);
 
       const messageData: IMessageData = { type: "join_room", roomId: "INVALID" };
@@ -154,7 +155,7 @@ describe("Room Functionality Integration Tests", () => {
     });
 
     test("should handle message without room", () => {
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = clientService.createClient(mockWs);
 
       const messageData: IMessageData = { type: "message", message: "Hello" };

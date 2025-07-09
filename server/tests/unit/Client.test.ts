@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import { Client } from "../../src/models/Client";
 import { IClient } from "../../src/types";
+import { WebSocket } from "ws";
 
 describe("Client", () => {
-  let mockWs: any;
+  let mockWs: WebSocket;
   let client: IClient;
 
   beforeEach(() => {
@@ -11,7 +12,7 @@ describe("Client", () => {
       readyState: 1,
       send: jest.fn(),
       close: jest.fn(),
-    };
+    } as unknown as WebSocket;
     client = new Client(mockWs);
   });
 

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { WebSocket } from "ws";
 import { RoomService } from "../../src/services/RoomService";
 import { IRoomService } from "../../src/types";
 
@@ -49,7 +50,7 @@ describe("RoomService", () => {
   describe("addClientToRoom", () => {
     test("should add client to room successfully", () => {
       const room = roomService.createRoom();
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = {
         id: "test-client",
         ws: mockWs,
@@ -69,7 +70,7 @@ describe("RoomService", () => {
     });
 
     test("should fail when room does not exist", () => {
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = {
         id: "test-client",
         ws: mockWs,
@@ -90,7 +91,7 @@ describe("RoomService", () => {
     test("should fail when client is already in a room", () => {
       const room1 = roomService.createRoom();
       const room2 = roomService.createRoom();
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = {
         id: "test-client",
         ws: mockWs,
@@ -112,7 +113,7 @@ describe("RoomService", () => {
   describe("removeClientFromRoom", () => {
     test("should remove client from room", () => {
       const room = roomService.createRoom();
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = {
         id: "test-client",
         ws: mockWs,
@@ -135,7 +136,7 @@ describe("RoomService", () => {
 
     test("should remove room when last client leaves", () => {
       const room = roomService.createRoom();
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = {
         id: "test-client",
         ws: mockWs,
@@ -154,7 +155,7 @@ describe("RoomService", () => {
     });
 
     test("should handle client not in room", () => {
-      const mockWs = { readyState: 1, send: jest.fn() } as any;
+      const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client = {
         id: "test-client",
         ws: mockWs,

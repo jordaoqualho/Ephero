@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { WebSocket } from "ws";
 import { EpheroServer } from "../../src/server";
 import { IClient, IMessageData } from "../../src/types";
 
@@ -15,7 +16,7 @@ jest.mock("ws", () => ({
 
 describe("Room Client E2E Tests", () => {
   let server: EpheroServer;
-  let mockWebSocket: any;
+  let mockWebSocket: WebSocket;
 
   beforeEach(() => {
     server = new EpheroServer(8082);
@@ -60,7 +61,7 @@ describe("Room Client E2E Tests", () => {
       const room = server.roomService.createRoom();
       const clients: IClient[] = [];
       for (let i = 0; i < 3; i++) {
-        const mockWs = { readyState: 1, send: jest.fn() } as any;
+        const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
         const client = server.clientService.createClient(mockWs);
         const result = server.roomService.addClientToRoom(room.id, client);
         expect(result.success).toBe(true);
@@ -112,8 +113,8 @@ describe("Room Client E2E Tests", () => {
 
     test("should handle broadcast message", () => {
       const room = server.roomService.createRoom();
-      const mockWs1 = { readyState: 1, send: jest.fn() } as any;
-      const mockWs2 = { readyState: 1, send: jest.fn() } as any;
+      const mockWs1 = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
+      const mockWs2 = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
       const client1 = server.clientService.createClient(mockWs1);
       const client2 = server.clientService.createClient(mockWs2);
       server.roomService.addClientToRoom(room.id, client1);
