@@ -1,5 +1,14 @@
-class Room {
-  constructor(id) {
+import { IClient, IRoom } from "../types";
+
+export class Room implements IRoom {
+  public id: string;
+  public clients: Set<IClient>;
+  public createdAt: number;
+  public lastActivity: number;
+  public maxClients: number;
+  public ttl: number;
+
+  constructor(id: string) {
     this.id = id;
     this.clients = new Set();
     this.createdAt = Date.now();
@@ -8,30 +17,32 @@ class Room {
     this.ttl = 30 * 60 * 1000;
   }
 
-  addClient(client) {
+  addClient(client: IClient): boolean {
     if (this.clients.size >= this.maxClients) {
       return false;
     }
     this.clients.add(client);
+    client.roomId = this.id;
     this.lastActivity = Date.now();
     return true;
   }
 
-  removeClient(client) {
+  removeClient(client: IClient): boolean {
     this.clients.delete(client);
+    client.roomId = null;
     this.lastActivity = Date.now();
     return this.clients.size === 0;
   }
 
-  isExpired() {
+  isExpired(): boolean {
     return Date.now() - this.lastActivity > this.ttl;
   }
 
-  getClientCount() {
+  getClientCount(): number {
     return this.clients.size;
   }
 
-  broadcast(message, excludeClient = null) {
+  broadcast(message: any, excludeClient: IClient | null = null): void {
     const messageStr = JSON.stringify(message);
     this.clients.forEach((client) => {
       if (client !== excludeClient && client.ws.readyState === 1) {
@@ -40,5 +51,3 @@ class Room {
     });
   }
 }
-
-module.exports = Room;
