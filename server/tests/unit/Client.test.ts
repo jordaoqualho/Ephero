@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { WebSocket } from "ws";
 import { Client } from "../../src/models/Client";
 import { IClient } from "../../src/types";
-import { WebSocket } from "ws";
 
 describe("Client", () => {
   let mockWs: WebSocket;
@@ -19,7 +19,7 @@ describe("Client", () => {
   describe("constructor", () => {
     test("should create client with unique ID", () => {
       expect(client.id).toBeDefined();
-      expect(client.id).toHaveLength(18);
+      expect(client.id).toHaveLength(16);
       expect(client.roomId).toBeNull();
       expect(client.ws).toBe(mockWs);
     });
@@ -48,15 +48,15 @@ describe("Client", () => {
 
   describe("send", () => {
     test("should send message through websocket", () => {
-      const message = { type: "test", data: "hello" };
+      const message = { type: "welcome" as const, message: "hello", clientId: "test" };
       client.send(message);
 
       expect(mockWs.send).toHaveBeenCalledWith(JSON.stringify(message));
     });
 
     test("should handle multiple messages", () => {
-      const message1 = { type: "test1", data: "hello1" };
-      const message2 = { type: "test2", data: "hello2" };
+      const message1 = { type: "welcome" as const, message: "hello1", clientId: "test1" };
+      const message2 = { type: "welcome" as const, message: "hello2", clientId: "test2" };
 
       client.send(message1);
       client.send(message2);

@@ -1,31 +1,13 @@
-import js from "@eslint/js";
-import tseslint from "@typescript-eslint/eslint-plugin";
-import tsparser from "@typescript-eslint/parser";
+const tseslint = require("@typescript-eslint/eslint-plugin");
+const tsparser = require("@typescript-eslint/parser");
 
-export default [
-  js.configs.recommended,
+module.exports = [
   {
     files: ["**/*.ts"],
     languageOptions: {
       parser: tsparser,
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: "module",
-      },
-      globals: {
-        process: "readonly",
-        console: "readonly",
-        setTimeout: "readonly",
-        setInterval: "readonly",
-        Buffer: "readonly",
-        clearTimeout: "readonly",
-        clearInterval: "readonly",
-        __dirname: "readonly",
-        __filename: "readonly",
-        require: "readonly",
-        module: "readonly",
-        exports: "readonly",
-      },
+      ecmaVersion: 2020,
+      sourceType: "module",
     },
     plugins: {
       "@typescript-eslint": tseslint,

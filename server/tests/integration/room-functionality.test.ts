@@ -134,7 +134,7 @@ describe("Room Functionality Integration Tests", () => {
 
     test("should keep active rooms", () => {
       const room = roomService.createRoom();
-      room.lastActivity = Date.now() - 29 * 60 * 1000; // Not expired
+      room.lastActivity = Date.now() - 4 * 60 * 1000;
 
       roomService.cleanupExpiredRooms();
 

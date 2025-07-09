@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('jest').Config} */
+const config = {
   preset: "ts-jest",
   testEnvironment: "node",
   roots: ["<rootDir>/src", "<rootDir>/tests"],
@@ -12,7 +13,8 @@ module.exports = {
     ],
   },
   collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts"],
-  setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
   moduleFileExtensions: ["ts", "js", "json"],
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
 };
+
+module.exports = config;

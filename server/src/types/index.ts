@@ -27,26 +27,34 @@ export interface IRoom {
   ttl: number;
   addClient(client: IClient): boolean;
   removeClient(client: IClient): boolean;
+  updateActivity(): void;
   isExpired(): boolean;
   getClientCount(): number;
   broadcast(message: MessageType, excludeClient?: IClient | null): void;
+  destroy(): void;
+  getTimeUntilExpiration(): number;
 }
 
 export interface IRoomService {
   rooms: Map<string, IRoom>;
-  createRoom(): IRoom;
+  createRoom(customTTL?: number): IRoom;
   getRoom(roomId: string): IRoom | undefined;
   removeRoom(roomId: string): void;
   addClientToRoom(roomId: string, client: IClient): { success: boolean; room?: IRoom; error?: string };
   removeClientFromRoom(client: IClient): IRoom | undefined;
   getActiveRooms(): IRoomInfo[];
   cleanupExpiredRooms(): void;
+  setDefaultTTL(ttl: number): void;
+  getDefaultTTL(): number;
+  getRoomStats(): { totalRooms: number; activeRooms: number; expiredRooms: number };
+  destroy(): void;
 }
 
 export interface IRoomInfo {
   id: string;
   clientsCount: number;
   createdAt: number;
+  timeUntilExpiration?: number;
 }
 
 export interface IClientService {

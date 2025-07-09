@@ -84,7 +84,7 @@ describe("RoomService", () => {
       const result = roomService.addClientToRoom("NON_EXISTENT", client);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Room not found");
+      expect(result.error).toBe("Room not found or expired");
       expect(client.roomId).toBeNull();
     });
 
@@ -193,7 +193,7 @@ describe("RoomService", () => {
   describe("cleanupExpiredRooms", () => {
     test("should remove expired rooms", () => {
       const room = roomService.createRoom();
-      room.lastActivity = Date.now() - 31 * 60 * 1000; // Expired
+      room.lastActivity = Date.now() - 6 * 60 * 1000;
 
       roomService.cleanupExpiredRooms();
 
@@ -202,7 +202,7 @@ describe("RoomService", () => {
 
     test("should keep active rooms", () => {
       const room = roomService.createRoom();
-      room.lastActivity = Date.now() - 29 * 60 * 1000; // Not expired
+      room.lastActivity = Date.now() - 4 * 60 * 1000;
 
       roomService.cleanupExpiredRooms();
 
@@ -213,8 +213,8 @@ describe("RoomService", () => {
       const activeRoom = roomService.createRoom();
       const expiredRoom = roomService.createRoom();
 
-      activeRoom.lastActivity = Date.now() - 29 * 60 * 1000; // Not expired
-      expiredRoom.lastActivity = Date.now() - 31 * 60 * 1000; // Expired
+      activeRoom.lastActivity = Date.now() - 4 * 60 * 1000;
+      expiredRoom.lastActivity = Date.now() - 6 * 60 * 1000;
 
       roomService.cleanupExpiredRooms();
 
