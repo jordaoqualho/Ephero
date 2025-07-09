@@ -27,8 +27,6 @@ describe("Client", () => {
       const client1 = new Client(mockWs);
       const client2 = new Client(mockWs);
 
-      // Since we're using a mock that returns the same value, we need to test differently
-      // The actual implementation should generate different IDs
       expect(client1.id).toBeDefined();
       expect(client2.id).toBeDefined();
       expect(typeof client1.id).toBe("string");
