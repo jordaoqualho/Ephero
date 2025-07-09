@@ -84,7 +84,7 @@ describe("RoomService", () => {
       const result = roomService.addClientToRoom("NON_EXISTENT", client);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Room not found");
+      expect(result.error).toBe("Room not found or expired");
       expect(client.roomId).toBeNull();
     });
 

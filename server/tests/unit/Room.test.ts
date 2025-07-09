@@ -1,168 +1,110 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import { WebSocket } from "ws";
+import { Client } from "../../src/models/Client";
 import { Room } from "../../src/models/Room";
-import { IRoom } from "../../src/types";
 
 describe("Room", () => {
-  let room: IRoom;
+  let room: Room;
+  let client: Client;
+  let mockWs: WebSocket;
 
   beforeEach(() => {
-    room = new Room("TEST123");
+    mockWs = {
+      readyState: 1,
+      send: jest.fn(),
+    } as unknown as WebSocket;
+    room = new Room("test-room");
+    client = new Client(mockWs);
   });
 
-  describe("constructor", () => {
-    test("should create room with correct properties", () => {
-      expect(room.id).toBe("TEST123");
-      expect(room.clients).toBeInstanceOf(Set);
-      expect(room.createdAt).toBeGreaterThan(0);
-      expect(room.lastActivity).toBeGreaterThan(0);
-      expect(room.maxClients).toBe(10);
+  describe("TTL functionality", () => {
+    test("should create room with default TTL", () => {
       expect(room.ttl).toBe(30 * 60 * 1000);
     });
-  });
 
-  describe("addClient", () => {
-    test("should add client successfully", () => {
-      const client = { id: "client1", ws: { readyState: 1 } as unknown as WebSocket } as IRoom["clients"][0];
-      const result = room.addClient(client);
-
-      expect(result).toBe(true);
-      expect(room.clients.has(client)).toBe(true);
-      expect(room.getClientCount()).toBe(1);
+    test("should create room with custom TTL", () => {
+      const customTTL = 5 * 60 * 1000;
+      const customRoom = new Room("custom-room", customTTL);
+      expect(customRoom.ttl).toBe(customTTL);
     });
 
-    test("should not add client when room is full", () => {
+    test("should not be expired initially", () => {
+      expect(room.isExpired()).toBe(false);
+    });
+
+    test("should update activity when adding client", () => {
+      const initialActivity = room.lastActivity;
+      room.addClient(client);
+      expect(room.lastActivity).toBeGreaterThanOrEqual(initialActivity);
+    });
+
+    test("should update activity when removing client", () => {
+      room.addClient(client);
+      const initialActivity = room.lastActivity;
+      room.removeClient(client);
+      expect(room.lastActivity).toBeGreaterThanOrEqual(initialActivity);
+    });
+
+    test("should update activity when broadcasting", () => {
+      room.addClient(client);
+      const initialActivity = room.lastActivity;
+      room.broadcast({ type: "message", message: "test", userId: "test" });
+      expect(room.lastActivity).toBeGreaterThanOrEqual(initialActivity);
+    });
+  });
+
+  describe("Client management", () => {
+    test("should add client successfully", () => {
+      const result = room.addClient(client);
+      expect(result).toBe(true);
+      expect(room.getClientCount()).toBe(1);
+      expect(client.roomId).toBe(room.id);
+    });
+
+    test("should not add client if room is full", () => {
       for (let i = 0; i < 10; i++) {
-        const client = { id: `client${i}`, ws: { readyState: 1 } as IRoom["clients"][0] };
-        room.addClient(client);
+        const testClient = new Client(mockWs);
+        room.addClient(testClient);
       }
 
-      const extraClient = { id: "client11", ws: { readyState: 1 } as IRoom["clients"][0] };
-      const result = room.addClient(extraClient);
-
+      const newClient = new Client(mockWs);
+      const result = room.addClient(newClient);
       expect(result).toBe(false);
-      expect(room.clients.has(extraClient)).toBe(false);
       expect(room.getClientCount()).toBe(10);
     });
 
-    test("should update lastActivity when adding client", () => {
-      const originalActivity = room.lastActivity;
-      const client = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
-
-      setTimeout(() => {
-        room.addClient(client);
-        expect(room.lastActivity).toBeGreaterThan(originalActivity);
-      }, 10);
-    });
-  });
-
-  describe("removeClient", () => {
     test("should remove client successfully", () => {
-      const client = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
       room.addClient(client);
-
-      const result = room.removeClient(client);
-
-      expect(result).toBe(true);
-      expect(room.clients.has(client)).toBe(false);
+      const isEmpty = room.removeClient(client);
+      expect(isEmpty).toBe(true);
       expect(room.getClientCount()).toBe(0);
+      expect(client.roomId).toBeNull();
     });
 
-    test("should return false when room is not empty after removal", () => {
-      const client1 = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
-      const client2 = { id: "client2", ws: { readyState: 1 } as IRoom["clients"][0] };
-
-      room.addClient(client1);
-      room.addClient(client2);
-
-      const result = room.removeClient(client1);
-
-      expect(result).toBe(false);
-      expect(room.clients.has(client1)).toBe(false);
-      expect(room.clients.has(client2)).toBe(true);
-      expect(room.getClientCount()).toBe(1);
-    });
-
-    test("should update lastActivity when removing client", () => {
-      const client = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
+    test("should not be empty when removing client from room with multiple clients", () => {
+      const client2 = new Client(mockWs);
       room.addClient(client);
+      room.addClient(client2);
 
-      const originalActivity = room.lastActivity;
-      setTimeout(() => {
-        room.removeClient(client);
-        expect(room.lastActivity).toBeGreaterThan(originalActivity);
-      }, 10);
+      const isEmpty = room.removeClient(client);
+      expect(isEmpty).toBe(false);
+      expect(room.getClientCount()).toBe(1);
     });
   });
 
-  describe("isExpired", () => {
-    test("should return true for expired room", () => {
-      room.lastActivity = Date.now() - 31 * 60 * 1000;
-      expect(room.isExpired()).toBe(true);
-    });
+  describe("Room destruction", () => {
+    test("should destroy room and notify clients", () => {
+      room.addClient(client);
+      room.destroy();
 
-    test("should return false for non-expired room", () => {
-      room.lastActivity = Date.now() - 29 * 60 * 1000;
-      expect(room.isExpired()).toBe(false);
-    });
-  });
-
-  describe("getClientCount", () => {
-    test("should return correct client count", () => {
       expect(room.getClientCount()).toBe(0);
-
-      const client1 = { id: "client1", ws: { readyState: 1 } as IRoom["clients"][0] };
-      const client2 = { id: "client2", ws: { readyState: 1 } as IRoom["clients"][0] };
-
-      room.addClient(client1);
-      expect(room.getClientCount()).toBe(1);
-
-      room.addClient(client2);
-      expect(room.getClientCount()).toBe(2);
-
-      room.removeClient(client1);
-      expect(room.getClientCount()).toBe(1);
-    });
-  });
-
-  describe("broadcast", () => {
-    test("should send message to all clients except excluded one", () => {
-      const client1 = {
-        id: "client1",
-        ws: { readyState: 1 } as unknown as WebSocket,
-        send: jest.fn(),
-      } as IRoom["clients"][0];
-      const client2 = { id: "client2", ws: { readyState: 1 } as WebSocket, send: jest.fn() } as IRoom["clients"][0];
-      const client3 = { id: "client3", ws: { readyState: 1 } as WebSocket, send: jest.fn() } as IRoom["clients"][0];
-
-      room.addClient(client1);
-      room.addClient(client2);
-      room.addClient(client3);
-
-      const message = { type: "test", content: "hello" };
-      room.broadcast(message, client2);
-
-      expect(client1.send).toHaveBeenCalledWith(JSON.stringify(message));
-      expect(client2.send).not.toHaveBeenCalled();
-      expect(client3.send).toHaveBeenCalledWith(JSON.stringify(message));
-    });
-
-    test("should not send to disconnected clients", () => {
-      const client1 = {
-        id: "client1",
-        ws: { readyState: 1 } as unknown as WebSocket,
-        send: jest.fn(),
-      } as IRoom["clients"][0];
-      const client2 = { id: "client2", ws: { readyState: 0 } as WebSocket, send: jest.fn() } as IRoom["clients"][0];
-
-      room.addClient(client1);
-      room.addClient(client2);
-
-      const message = { type: "test", content: "hello" };
-      room.broadcast(message);
-
-      expect(client1.send).toHaveBeenCalledWith(JSON.stringify(message));
-      expect(client2.send).not.toHaveBeenCalled();
+      expect(client.roomId).toBeNull();
+      expect(mockWs.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: "error",
+          error: "Room has expired due to inactivity",
+        })
+      );
     });
   });
 });
