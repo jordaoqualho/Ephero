@@ -41,6 +41,7 @@ export class EpheroServer implements IEpheroServer {
     client.ws.on("message", (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
+        console.log("📌 message → ", message);
         this.messageHandler.handleMessage(client, message);
       } catch (error) {
         client.send({
