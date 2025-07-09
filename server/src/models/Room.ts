@@ -43,10 +43,9 @@ export class Room implements IRoom {
   }
 
   broadcast(message: any, excludeClient: IClient | null = null): void {
-    const messageStr = JSON.stringify(message);
     this.clients.forEach((client) => {
       if (client !== excludeClient && client.ws.readyState === 1) {
-        client.send(messageStr);
+        client.send(message);
       }
     });
   }
