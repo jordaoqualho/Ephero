@@ -1,6 +1,7 @@
 import { EpheroServer } from "./server";
 
-const server = new EpheroServer(8080);
+const port = parseInt(process.env["PORT"] || "8080", 10);
+const server = new EpheroServer(port);
 
 process.on("SIGINT", () => {
   console.log("\nShutting down server...");
