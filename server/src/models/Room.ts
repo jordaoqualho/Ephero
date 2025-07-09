@@ -9,7 +9,7 @@ export class Room implements IRoom {
   public ttl: number;
   private activityTimeout: ReturnType<typeof setTimeout> | null;
 
-  constructor(id: string, ttl: number = 30 * 60 * 1000) {
+  constructor(id: string, ttl: number = 5 * 60 * 1000) {
     this.id = id;
     this.clients = new Set();
     this.createdAt = Date.now();

@@ -7,7 +7,7 @@ export class RoomService implements IRoomService {
   private defaultTTL: number;
   private cleanupInterval: ReturnType<typeof setInterval> | null;
 
-  constructor(defaultTTL: number = 30 * 60 * 1000) {
+  constructor(defaultTTL: number = 5 * 60 * 1000) {
     this.rooms = new Map();
     this.defaultTTL = defaultTTL;
     this.cleanupInterval = null;
