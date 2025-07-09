@@ -1,0 +1,151 @@
+import { WebSocket } from "ws";
+
+export interface IClient {
+  id: string;
+  ws: WebSocket;
+  roomId: string | null;
+  joinedAt: number | null;
+  assignToRoom(roomId: string): void;
+  leaveRoom(): string | null;
+  isInRoom(): boolean;
+  send(message: any): void;
+  getInfo(): IClientInfo;
+}
+
+export interface IClientInfo {
+  id: string;
+  roomId: string | null;
+  joinedAt: number | null;
+}
+
+export interface IRoom {
+  id: string;
+  clients: Set<IClient>;
+  createdAt: number;
+  lastActivity: number;
+  maxClients: number;
+  ttl: number;
+  addClient(client: IClient): boolean;
+  removeClient(client: IClient): boolean;
+  isExpired(): boolean;
+  getClientCount(): number;
+  broadcast(message: any, excludeClient?: IClient | null): void;
+}
+
+export interface IRoomService {
+  rooms: Map<string, IRoom>;
+  createRoom(): IRoom;
+  getRoom(roomId: string): IRoom | undefined;
+  removeRoom(roomId: string): void;
+  addClientToRoom(roomId: string, client: IClient): { success: boolean; room?: IRoom; error?: string };
+  removeClientFromRoom(client: IClient): IRoom | undefined;
+  getActiveRooms(): IRoomInfo[];
+  cleanupExpiredRooms(): void;
+}
+
+export interface IRoomInfo {
+  id: string;
+  clientsCount: number;
+  createdAt: number;
+}
+
+export interface IClientService {
+  clients: Map<string, IClient>;
+  createClient(ws: WebSocket): IClient;
+  removeClient(clientId: string): void;
+  getClient(clientId: string): IClient | undefined;
+  getAllClients(): IClient[];
+  sendWelcomeMessage(client: IClient): void;
+}
+
+export interface IMessageHandler {
+  roomService: IRoomService;
+  clientService: IClientService;
+  handleMessage(client: IClient, data: any): void;
+  handleCreateRoom(client: IClient): void;
+  handleJoinRoom(client: IClient, data: any): void;
+  handleLeaveRoom(client: IClient): void;
+  handleGetRooms(client: IClient): void;
+  handleBroadcastMessage(client: IClient, data: any): void;
+}
+
+export interface IEpheroServer {
+  port: number;
+  wss: any;
+  roomService: IRoomService;
+  clientService: IClientService;
+  messageHandler: IMessageHandler;
+  start(): void;
+  stop(): void;
+  setupClientHandlers(client: IClient): void;
+  handleClientDisconnect(client: IClient): void;
+  handleClientError(client: IClient, error: any): void;
+}
+
+export interface IMessageData {
+  type: string;
+  roomId?: string;
+  message?: string;
+  [key: string]: any;
+}
+
+export interface IWelcomeMessage {
+  type: "welcome";
+  message: string;
+  clientId: string;
+}
+
+export interface IRoomCreatedMessage {
+  type: "room_created";
+  message: string;
+  roomId: string;
+}
+
+export interface IRoomJoinedMessage {
+  type: "room_joined";
+  message: string;
+  roomId: string;
+  clientsCount: number;
+}
+
+export interface IRoomLeftMessage {
+  type: "room_left";
+  message: string;
+}
+
+export interface IUserJoinedMessage {
+  type: "user_joined";
+  userId: string;
+}
+
+export interface IUserLeftMessage {
+  type: "user_left";
+  userId: string;
+}
+
+export interface IMessageBroadcastMessage {
+  type: "message";
+  message: string;
+  userId: string;
+}
+
+export interface IRoomsListMessage {
+  type: "rooms_list";
+  rooms: IRoomInfo[];
+}
+
+export interface IErrorMessage {
+  type: "error";
+  error: string;
+}
+
+export type MessageType =
+  | IWelcomeMessage
+  | IRoomCreatedMessage
+  | IRoomJoinedMessage
+  | IRoomLeftMessage
+  | IUserJoinedMessage
+  | IUserLeftMessage
+  | IMessageBroadcastMessage
+  | IRoomsListMessage
+  | IErrorMessage;
