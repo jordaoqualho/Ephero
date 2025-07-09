@@ -43,7 +43,7 @@ export class EpheroServer implements IEpheroServer {
         const message = JSON.parse(data.toString());
         console.log("📌 message → ", message);
         this.messageHandler.handleMessage(client, message);
-      } catch (error) {
+      } catch {
         client.send({
           type: "error",
           error: "Invalid JSON message",
