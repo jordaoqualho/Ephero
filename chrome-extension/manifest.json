@@ -1,21 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Ephero - Ephemeral Encrypted Sharing",
-  "version": "0.1.0",
-  "description": "Share sensitive data securely via ephemeral encrypted channels. Zero persistence, auto-destroying rooms with end-to-end encryption.",
-  "permissions": ["storage", "clipboardWrite", "activeTab"],
-  "host_permissions": ["ws://localhost:8080/*", "wss://*/*"],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "Ephero - Ephemeral Encrypted Sharing"
-  },
-  "icons": {
-    "16": "ephero.png",
-    "48": "ephero.png",
-    "128": "ephero.png"
-  },
+  "name": "Ephero",
+  "version": "1.0.0",
+  "description": "Secure ephemeral data sharing via WebSocket channels",
+  "permissions": ["storage", "notifications", "activeTab"],
+  "host_permissions": ["ws://localhost:3000/*", "http://localhost:3000/*"],
   "background": {
     "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Ephero - Secure Sharing",
+    "default_icon": {
+      "16": "icon.svg",
+      "32": "icon.svg",
+      "48": "icon.svg",
+      "128": "icon.svg"
+    }
+  },
+  "icons": {
+    "16": "icon.svg",
+    "32": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
   },
   "content_scripts": [
     {
@@ -24,10 +31,13 @@
       "run_at": "document_end"
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": ["ephero.png"],
-      "matches": ["<all_urls>"]
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Open Ephero"
     }
-  ]
+  }
 }

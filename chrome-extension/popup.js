@@ -20,11 +20,17 @@ const elements = {
   messagesSection: document.getElementById("messagesSection"),
   messages: document.getElementById("messages"),
   clearMessages: document.getElementById("clearMessages"),
+  inputSection: document.getElementById("inputSection"),
+  connectionInfo: document.getElementById("connectionInfo"),
 };
 
 function updateStatus(status, className = "") {
   elements.status.textContent = status;
   elements.status.className = className;
+}
+
+function updateConnectionInfo(info) {
+  elements.connectionInfo.textContent = info;
 }
 
 function showError(message) {
@@ -87,7 +93,7 @@ function updateTimer() {
 function startTimer() {
   timeLeft = 300;
   updateTimer();
-  elements.ttlTimer.style.display = "block";
+  elements.ttlTimer.style.display = "flex";
   ttlInterval = setInterval(() => {
     timeLeft--;
     updateTimer();
@@ -102,6 +108,20 @@ function stopTimer() {
   elements.ttlTimer.style.display = "none";
 }
 
+function showRoomInterface() {
+  elements.roomSection.style.display = "block";
+  elements.messagesSection.style.display = "flex";
+  elements.inputSection.style.display = "block";
+  elements.roomActions.style.display = "none";
+}
+
+function hideRoomInterface() {
+  elements.roomSection.style.display = "none";
+  elements.messagesSection.style.display = "none";
+  elements.inputSection.style.display = "none";
+  elements.roomActions.style.display = "flex";
+}
+
 function connectWebSocket(roomIdToJoin = null) {
   const wsUrl = roomIdToJoin ? `ws://localhost:3000/join/${roomIdToJoin}` : "ws://localhost:3000/create";
 
@@ -114,12 +134,20 @@ function connectWebSocket(roomIdToJoin = null) {
   }
 
   updateStatus("Connecting...", "connecting");
+  updateConnectionInfo("Establishing connection...");
 
   ws.onopen = () => {
     isConnected = true;
     updateStatus("Connected", "connected");
     updateSendButton();
+    updateConnectionInfo("Connected to room");
     showSuccess("Connected to room successfully");
+
+    // Notify service worker about connection
+    chrome.runtime.sendMessage({
+      type: "WEBSOCKET_CONNECTED",
+      roomId: roomIdToJoin,
+    });
   };
 
   ws.onmessage = (event) => {
@@ -129,19 +157,29 @@ function connectWebSocket(roomIdToJoin = null) {
       if (data.type === "room_created") {
         roomId = data.roomId;
         elements.roomId.textContent = roomId;
-        elements.roomSection.style.display = "block";
-        elements.roomActions.style.display = "none";
-        elements.messagesSection.style.display = "block";
+        showRoomInterface();
         startTimer();
         showSuccess("Room created successfully");
+        updateConnectionInfo(`Room: ${roomId}`);
+
+        // Store room info in service worker
+        chrome.runtime.sendMessage({
+          type: "ROOM_CREATED",
+          roomId: roomId,
+        });
       } else if (data.type === "room_joined") {
         roomId = data.roomId;
         elements.roomId.textContent = roomId;
-        elements.roomSection.style.display = "block";
-        elements.roomActions.style.display = "none";
-        elements.messagesSection.style.display = "block";
+        showRoomInterface();
         startTimer();
         showSuccess("Joined room successfully");
+        updateConnectionInfo(`Room: ${roomId}`);
+
+        // Store room info in service worker
+        chrome.runtime.sendMessage({
+          type: "ROOM_JOINED",
+          roomId: roomId,
+        });
       } else if (data.type === "message") {
         addMessage(data.content, "received");
       } else if (data.type === "error") {
@@ -157,6 +195,12 @@ function connectWebSocket(roomIdToJoin = null) {
     updateStatus("Disconnected");
     updateSendButton();
     stopTimer();
+    updateConnectionInfo("Connection lost");
+
+    // Notify service worker about disconnection
+    chrome.runtime.sendMessage({
+      type: "WEBSOCKET_DISCONNECTED",
+    });
   };
 
   ws.onerror = (error) => {
@@ -165,6 +209,7 @@ function connectWebSocket(roomIdToJoin = null) {
     updateStatus("Error");
     isConnected = false;
     updateSendButton();
+    updateConnectionInfo("Connection failed");
   };
 }
 
@@ -182,12 +227,16 @@ function leaveRoom() {
   disconnectWebSocket();
   stopTimer();
   roomId = null;
-  elements.roomSection.style.display = "none";
-  elements.roomActions.style.display = "flex";
-  elements.messagesSection.style.display = "none";
+  hideRoomInterface();
   clearMessages();
   elements.message.value = "";
   updateSendButton();
+  updateConnectionInfo("Click Create Room or Join Room to start");
+
+  // Notify service worker about leaving room
+  chrome.runtime.sendMessage({
+    type: "ROOM_LEFT",
+  });
 }
 
 function sendMessage() {
@@ -216,6 +265,7 @@ function copyRoomId() {
     });
 }
 
+// Event listeners
 elements.message.addEventListener("input", updateSendButton);
 elements.sendMessage.addEventListener("click", sendMessage);
 elements.message.addEventListener("keydown", (e) => {
@@ -240,4 +290,21 @@ elements.copyRoomId.addEventListener("click", copyRoomId);
 elements.leaveRoom.addEventListener("click", leaveRoom);
 elements.clearMessages.addEventListener("click", clearMessages);
 
+// Listen for messages from service worker
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "NEW_MESSAGE") {
+    addMessage(message.content, "received", new Date(message.timestamp));
+  } else if (message.type === "ROOM_EXPIRED") {
+    leaveRoom();
+    showError("Room has expired");
+  } else if (message.type === "PENDING_MESSAGES") {
+    // Add pending messages when popup opens
+    message.messages.forEach((msg) => {
+      addMessage(msg.content, "received", new Date(msg.timestamp));
+    });
+  }
+});
+
+// Initialize
 updateSendButton();
+updateConnectionInfo("Click Create Room or Join Room to start");
