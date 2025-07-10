@@ -1,5 +1,4 @@
-/** @type {import('jest').Config} */
-const config = {
+export default {
   preset: "ts-jest",
   testEnvironment: "node",
   roots: ["<rootDir>/src", "<rootDir>/tests"],
@@ -16,5 +15,3 @@ const config = {
   moduleFileExtensions: ["ts", "js", "json"],
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
 };
-
-module.exports = config;
