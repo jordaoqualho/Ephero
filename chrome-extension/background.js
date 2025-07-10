@@ -1,6 +1,6 @@
-// Background service worker for Secure Share extension
+// Background service worker for Ephero extension
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Secure Share extension installed");
+  console.log("Ephero extension installed");
 });
 
 // Handle extension icon click
@@ -25,15 +25,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Handle context menu creation
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: "secure-share-selection",
-    title: "Share securely with Secure Share",
+    id: "ephero-share-selection",
+    title: "Share securely with Ephero",
     contexts: ["selection"],
   });
 });
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "secure-share-selection") {
+  if (info.menuItemId === "ephero-share-selection") {
     chrome.tabs.sendMessage(tab.id, {
       type: "SHARE_SELECTION",
       data: info.selectionText,

@@ -1,4 +1,4 @@
-// Content script for Secure Share extension
+// Content script for Ephero extension
 // Handles text selection and context menu integration
 
 // Listen for messages from background script
@@ -38,7 +38,7 @@ function handleShareSelection(text) {
   });
 
   // Show a notification
-  showNotification("Text ready for secure sharing");
+  showNotification("Text ready for secure sharing with Ephero");
 }
 
 // Show a temporary notification

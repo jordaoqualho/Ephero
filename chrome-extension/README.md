@@ -1,4 +1,4 @@
-# Secure Share Chrome Extension
+# Ephero Chrome Extension
 
 A Chrome extension for sharing sensitive data securely via ephemeral WebSocket channels with end-to-end encryption.
 
@@ -47,7 +47,7 @@ A Chrome extension for sharing sensitive data securely via ephemeral WebSocket c
 
 ### Basic Sharing
 
-1. Click the Secure Share extension icon in your Chrome toolbar
+1. Click the Ephero extension icon in your Chrome toolbar
 2. Click "Create Room" to create a new ephemeral room
 3. Share the room ID with others who need to join
 4. Type messages in the text area and press Ctrl+Enter to send
@@ -55,7 +55,7 @@ A Chrome extension for sharing sensitive data securely via ephemeral WebSocket c
 
 ### Text Selection Sharing
 
-1. **Right-click method**: Select any text on a webpage, right-click, and choose "Share securely with Secure Share"
+1. **Right-click method**: Select any text on a webpage, right-click, and choose "Share securely with Ephero"
 2. **Keyboard shortcut**: Select text and press `Ctrl+Shift+S` for quick sharing
 3. The selected text will automatically populate the message input
 4. Create or join a room to share the selected content

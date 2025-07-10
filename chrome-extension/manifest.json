@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Secure Share",
+  "name": "Ephero",
   "version": "0.1.0",
   "description": "Share sensitive data securely via ephemeral encrypted channels. Zero persistence, auto-destroying rooms with end-to-end encryption.",
   "permissions": ["storage", "clipboardWrite", "activeTab"],
   "host_permissions": ["ws://localhost:8080/*", "wss://*/*"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Secure Share - Ephemeral Encrypted Sharing"
+    "default_title": "Ephero - Ephemeral Encrypted Sharing"
   },
   "icons": {
     "16": "ephero.png",
