@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Secure Share",
-  "version": "0.1",
-  "description": "Share sensitive data securely via ephemeral channels.",
+  "name": "Ephero",
+  "version": "1.0.0",
+  "description": "Share sensitive data securely via ephemeral channels that self-destruct.",
   "permissions": ["storage", "clipboardWrite"],
   "action": {
     "default_popup": "popup.html"
   },
   "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+    "16": "ephero.png",
+    "48": "ephero.png",
+    "128": "ephero.png"
   }
 }
