@@ -16,10 +16,13 @@
       <main>
         <div class="input-section">
           <label for="message">Message to share:</label>
-          <textarea id="message" placeholder="Enter your sensitive message here..." rows="4"></textarea>
+          <div class="message-input-container">
+            <textarea id="message" placeholder="Enter your sensitive message here..." rows="3"></textarea>
+            <button id="sendMessage" class="btn btn-send" disabled>Send</button>
+          </div>
         </div>
 
-        <div class="button-section">
+        <div class="button-section" id="roomActions">
           <button id="createRoom" class="btn btn-primary">Create Room</button>
           <button id="joinRoom" class="btn btn-secondary">Join Room</button>
         </div>
@@ -39,10 +42,17 @@
           <div class="connection-status">
             <span id="status">Disconnected</span>
           </div>
+
+          <div class="room-actions">
+            <button id="leaveRoom" class="btn btn-danger">Leave Room</button>
+          </div>
         </div>
 
         <div class="messages-section" id="messagesSection" style="display: none">
-          <h3>Messages</h3>
+          <div class="messages-header">
+            <h3>Messages</h3>
+            <button id="clearMessages" class="btn btn-small">Clear</button>
+          </div>
           <div id="messages" class="messages"></div>
         </div>
       </main>

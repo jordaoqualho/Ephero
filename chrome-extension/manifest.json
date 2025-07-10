@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Ephero",
+  "name": "Ephero - Ephemeral Encrypted Sharing",
   "version": "0.1.0",
   "description": "Share sensitive data securely via ephemeral encrypted channels. Zero persistence, auto-destroying rooms with end-to-end encryption.",
   "permissions": ["storage", "clipboardWrite", "activeTab"],
