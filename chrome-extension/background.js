@@ -1,28 +1,20 @@
-// Background service worker for Ephero extension
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Ephero extension installed");
 });
 
-// Handle extension icon click
-chrome.action.onClicked.addListener((tab) => {
-  // This will open the popup automatically due to default_popup in manifest
-});
+chrome.action.onClicked.addListener((tab) => {});
 
-// Listen for messages from content scripts or popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "SHARE_SELECTION") {
-    // Handle sharing selected text from context menu
     handleShareSelection(request.data, sender.tab);
   }
 
   if (request.type === "GET_SERVER_STATUS") {
-    // Check if server is available
     checkServerStatus().then(sendResponse);
-    return true; // Keep message channel open for async response
+    return true;
   }
 });
 
-// Check if WebSocket server is available
 async function checkServerStatus() {
   try {
     const response = await fetch("http://localhost:8080/health", {
@@ -35,9 +27,7 @@ async function checkServerStatus() {
   }
 }
 
-// Handle sharing selected text
 function handleShareSelection(text, tab) {
-  // Store the text temporarily for the popup to access
   chrome.storage.local.set({
     pendingShare: {
       text: text,
@@ -46,6 +36,5 @@ function handleShareSelection(text, tab) {
     },
   });
 
-  // Open popup or notify user
   chrome.action.openPopup();
 }

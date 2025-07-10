@@ -1,22 +1,15 @@
-// Content script for Ephero extension
-// Handles text selection and keyboard shortcuts
-
-// Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "SHARE_SELECTION") {
     handleShareSelection(request.data);
   }
 });
 
-// Handle text selection for sharing
 function handleShareSelection(text) {
-  // Highlight the selected text briefly
   const selection = window.getSelection();
   if (selection.rangeCount > 0) {
     const range = selection.getRangeAt(0);
     const originalBackground = range.commonAncestorContainer.parentElement?.style.backgroundColor;
 
-    // Flash highlight
     if (range.commonAncestorContainer.parentElement) {
       range.commonAncestorContainer.parentElement.style.backgroundColor = "#667eea";
       setTimeout(() => {
@@ -27,7 +20,6 @@ function handleShareSelection(text) {
     }
   }
 
-  // Store the text for the popup to access
   chrome.storage.local.set({
     pendingShare: {
       text: text,
@@ -37,11 +29,9 @@ function handleShareSelection(text) {
     },
   });
 
-  // Show a notification
   showNotification("Text ready for secure sharing with Ephero");
 }
 
-// Show a temporary notification
 function showNotification(message) {
   const notification = document.createElement("div");
   notification.style.cssText = `
@@ -62,7 +52,6 @@ function showNotification(message) {
   notification.textContent = message;
   document.body.appendChild(notification);
 
-  // Add CSS animation
   const style = document.createElement("style");
   style.textContent = `
     @keyframes slideIn {
@@ -72,7 +61,6 @@ function showNotification(message) {
   `;
   document.head.appendChild(style);
 
-  // Remove after 3 seconds
   setTimeout(() => {
     notification.style.animation = "slideOut 0.3s ease-in";
     setTimeout(() => {
@@ -83,13 +71,11 @@ function showNotification(message) {
   }, 3000);
 }
 
-// Listen for text selection events
 document.addEventListener("mouseup", () => {
   const selection = window.getSelection();
   const selectedText = selection.toString().trim();
 
   if (selectedText.length > 0) {
-    // Store selected text for potential sharing
     chrome.storage.local.set({
       lastSelection: {
         text: selectedText,
@@ -99,7 +85,6 @@ document.addEventListener("mouseup", () => {
   }
 });
 
-// Add keyboard shortcut for quick sharing (Ctrl+Shift+S)
 document.addEventListener("keydown", (event) => {
   if (event.ctrlKey && event.shiftKey && event.key === "S") {
     const selection = window.getSelection();

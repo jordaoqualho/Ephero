@@ -55,11 +55,9 @@ class SecureShare {
     try {
       const result = await chrome.storage.local.get(["pendingShare"]);
       if (result.pendingShare) {
-        // Auto-fill the message input with selected text
         this.messageInput.value = result.pendingShare.text;
         this.showMessage(`📋 Text loaded from selection`, "System");
 
-        // Clear the pending share
         await chrome.storage.local.remove(["pendingShare"]);
       }
     } catch (error) {
@@ -85,7 +83,6 @@ class SecureShare {
 
     try {
       await this.connect();
-      // Wait for connection to be established
       await this.waitForConnection();
       this.ws.send(JSON.stringify({ type: "create_room" }));
     } catch (error) {
@@ -103,7 +100,6 @@ class SecureShare {
 
     try {
       await this.connect();
-      // Wait for connection to be established
       await this.waitForConnection();
       this.ws.send(
         JSON.stringify({
@@ -151,7 +147,6 @@ class SecureShare {
           reject(error);
         };
 
-        // Set connection timeout
         this.connectionTimeout = setTimeout(() => {
           if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
             this.ws.close();
@@ -294,7 +289,6 @@ class SecureShare {
   }
 }
 
-// Initialize the extension when the popup loads
 document.addEventListener("DOMContentLoaded", () => {
   new SecureShare();
 });
