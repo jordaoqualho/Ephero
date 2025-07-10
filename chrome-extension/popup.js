@@ -8,6 +8,7 @@ class SecureShare {
     this.initializeElements();
     this.bindEvents();
     this.loadStoredData();
+    this.checkPendingShare();
   }
 
   initializeElements() {
@@ -35,7 +36,7 @@ class SecureShare {
 
   async loadStoredData() {
     try {
-      const result = await chrome.storage.local.get(["roomId", "serverUrl"]);
+      const result = await chrome.storage.local.get(["roomId", "serverUrl", "pendingShare"]);
       if (result.roomId) {
         this.roomId = result.roomId;
         this.roomIdElement.textContent = this.roomId;
@@ -46,6 +47,22 @@ class SecureShare {
       }
     } catch (error) {
       console.error("Error loading stored data:", error);
+    }
+  }
+
+  async checkPendingShare() {
+    try {
+      const result = await chrome.storage.local.get(["pendingShare"]);
+      if (result.pendingShare) {
+        // Auto-fill the message input with selected text
+        this.messageInput.value = result.pendingShare.text;
+        this.showMessage(`📋 Text loaded from selection`, "System");
+
+        // Clear the pending share
+        await chrome.storage.local.remove(["pendingShare"]);
+      }
+    } catch (error) {
+      console.error("Error checking pending share:", error);
     }
   }
 

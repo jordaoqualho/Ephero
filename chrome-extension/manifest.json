@@ -1,15 +1,33 @@
 {
   "manifest_version": 3,
-  "name": "Ephero",
-  "version": "1.0.0",
-  "description": "Share sensitive data securely via ephemeral channels that self-destruct.",
-  "permissions": ["storage", "clipboardWrite"],
+  "name": "Secure Share",
+  "version": "0.1.0",
+  "description": "Share sensitive data securely via ephemeral encrypted channels. Zero persistence, auto-destroying rooms with end-to-end encryption.",
+  "permissions": ["storage", "clipboardWrite", "activeTab"],
+  "host_permissions": ["ws://localhost:8080/*", "wss://*/*"],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_title": "Secure Share - Ephemeral Encrypted Sharing"
   },
   "icons": {
     "16": "ephero.png",
     "48": "ephero.png",
     "128": "ephero.png"
-  }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["ephero.png"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
