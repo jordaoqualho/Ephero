@@ -19,11 +19,11 @@ describe("Room", () => {
 
   describe("TTL functionality", () => {
     test("should create room with default TTL", () => {
-      expect(room.ttl).toBe(30 * 60 * 1000);
+      expect(room.ttl).toBe(5 * 60 * 1000);
     });
 
     test("should create room with custom TTL", () => {
-      const customTTL = 5 * 60 * 1000;
+      const customTTL = 10 * 60 * 1000;
       const customRoom = new Room("custom-room", customTTL);
       expect(customRoom.ttl).toBe(customTTL);
     });

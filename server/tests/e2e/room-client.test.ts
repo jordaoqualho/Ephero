@@ -11,7 +11,7 @@ const mockWss = {
 };
 
 jest.mock("ws", () => ({
-  Server: jest.fn(() => mockWss),
+  WebSocketServer: jest.fn(() => mockWss),
 }));
 
 describe("Room Client E2E Tests", () => {
@@ -24,8 +24,10 @@ describe("Room Client E2E Tests", () => {
       readyState: 1,
       send: jest.fn(),
       close: jest.fn(),
-      on: jest.fn(),
-    };
+      on: jest.fn().mockReturnThis(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    } as unknown as WebSocket;
   });
 
   afterEach(() => {
@@ -61,7 +63,13 @@ describe("Room Client E2E Tests", () => {
       const room = server.roomService.createRoom();
       const clients: IClient[] = [];
       for (let i = 0; i < 3; i++) {
-        const mockWs = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
+        const mockWs = {
+          readyState: 1,
+          send: jest.fn(),
+          on: jest.fn().mockReturnThis(),
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
+        } as unknown as WebSocket;
         const client = server.clientService.createClient(mockWs);
         const result = server.roomService.addClientToRoom(room.id, client);
         expect(result.success).toBe(true);
@@ -113,8 +121,20 @@ describe("Room Client E2E Tests", () => {
 
     test("should handle broadcast message", () => {
       const room = server.roomService.createRoom();
-      const mockWs1 = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
-      const mockWs2 = { readyState: 1, send: jest.fn() } as unknown as WebSocket;
+      const mockWs1 = {
+        readyState: 1,
+        send: jest.fn(),
+        on: jest.fn().mockReturnThis(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      } as unknown as WebSocket;
+      const mockWs2 = {
+        readyState: 1,
+        send: jest.fn(),
+        on: jest.fn().mockReturnThis(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      } as unknown as WebSocket;
       const client1 = server.clientService.createClient(mockWs1);
       const client2 = server.clientService.createClient(mockWs2);
       server.roomService.addClientToRoom(room.id, client1);
@@ -162,14 +182,14 @@ describe("Room Client E2E Tests", () => {
   describe("Room Expiration", () => {
     test("should cleanup expired rooms", () => {
       const room = server.roomService.createRoom();
-      room.lastActivity = Date.now() - 31 * 60 * 1000;
+      room.lastActivity = Date.now() - 6 * 60 * 1000;
       server.roomService.cleanupExpiredRooms();
       expect(server.roomService.getRoom(room.id)).toBeUndefined();
     });
 
     test("should keep active rooms", () => {
       const room = server.roomService.createRoom();
-      room.lastActivity = Date.now() - 29 * 60 * 1000;
+      room.lastActivity = Date.now() - 4 * 60 * 1000;
       server.roomService.cleanupExpiredRooms();
       expect(server.roomService.getRoom(room.id)).toBe(room);
     });
