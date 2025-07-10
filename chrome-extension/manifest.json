@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Secure Share",
+  "version": "0.1",
+  "description": "Share sensitive data securely via ephemeral channels.",
+  "permissions": ["storage", "clipboardWrite"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
