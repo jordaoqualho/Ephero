@@ -1,5 +1,5 @@
 // Content script for Ephero extension
-// Handles text selection and context menu integration
+// Handles text selection and keyboard shortcuts
 
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

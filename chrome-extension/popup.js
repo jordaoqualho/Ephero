@@ -4,6 +4,7 @@ class SecureShare {
     this.roomId = null;
     this.isConnected = false;
     this.serverUrl = "ws://localhost:8080";
+    this.connectionTimeout = null;
 
     this.initializeElements();
     this.bindEvents();
@@ -83,7 +84,9 @@ class SecureShare {
     }
 
     try {
-      this.connect();
+      await this.connect();
+      // Wait for connection to be established
+      await this.waitForConnection();
       this.ws.send(JSON.stringify({ type: "create_room" }));
     } catch (error) {
       this.showError("Failed to create room: " + error.message);
@@ -99,7 +102,9 @@ class SecureShare {
     }
 
     try {
-      this.connect();
+      await this.connect();
+      // Wait for connection to be established
+      await this.waitForConnection();
       this.ws.send(
         JSON.stringify({
           type: "join_room",
@@ -111,32 +116,73 @@ class SecureShare {
     }
   }
 
-  connect() {
-    try {
-      this.ws = new WebSocket(this.serverUrl);
+  async connect() {
+    return new Promise((resolve, reject) => {
+      try {
+        this.ws = new WebSocket(this.serverUrl);
 
-      this.ws.onopen = () => {
-        this.updateStatus("Connected", true);
-        this.isConnected = true;
+        this.ws.onopen = () => {
+          this.updateStatus("Connected", true);
+          this.isConnected = true;
+          if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+          }
+          resolve();
+        };
+
+        this.ws.onmessage = (event) => {
+          this.handleMessage(JSON.parse(event.data));
+        };
+
+        this.ws.onclose = () => {
+          this.updateStatus("Disconnected", false);
+          this.isConnected = false;
+          if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+          }
+        };
+
+        this.ws.onerror = (error) => {
+          this.showError("WebSocket error: " + error.message);
+          this.updateStatus("Error", false);
+          this.isConnected = false;
+          reject(error);
+        };
+
+        // Set connection timeout
+        this.connectionTimeout = setTimeout(() => {
+          if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
+            this.ws.close();
+            reject(new Error("Connection timeout"));
+          }
+        }, 5000);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  async waitForConnection() {
+    return new Promise((resolve, reject) => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        resolve();
+        return;
+      }
+
+      const checkConnection = () => {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          resolve();
+        } else if (this.ws && this.ws.readyState === WebSocket.CLOSED) {
+          reject(new Error("WebSocket connection failed"));
+        } else {
+          setTimeout(checkConnection, 100);
+        }
       };
 
-      this.ws.onmessage = (event) => {
-        this.handleMessage(JSON.parse(event.data));
-      };
-
-      this.ws.onclose = () => {
-        this.updateStatus("Disconnected", false);
-        this.isConnected = false;
-      };
-
-      this.ws.onerror = (error) => {
-        this.showError("WebSocket error: " + error.message);
-        this.updateStatus("Error", false);
-        this.isConnected = false;
-      };
-    } catch (error) {
-      this.showError("Failed to connect: " + error.message);
-    }
+      checkConnection();
+    });
   }
 
   disconnect() {
@@ -146,6 +192,10 @@ class SecureShare {
     }
     this.isConnected = false;
     this.updateStatus("Disconnected", false);
+    if (this.connectionTimeout) {
+      clearTimeout(this.connectionTimeout);
+      this.connectionTimeout = null;
+    }
   }
 
   handleMessage(data) {
@@ -193,6 +243,11 @@ class SecureShare {
 
     if (!this.isConnected || !this.roomId) {
       this.showError("Not connected to a room");
+      return;
+    }
+
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      this.showError("WebSocket connection is not ready");
       return;
     }
 

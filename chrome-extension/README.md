@@ -9,7 +9,7 @@ A Chrome extension for sharing sensitive data securely via ephemeral WebSocket c
 - **🔄 Broadcast logic** to multiple connected clients
 - **⏱ TTL auto-cleanup** to wipe rooms automatically (5 minutes)
 - **🔗 Chrome extension** for direct integration into day-to-day work
-- **📋 Text selection sharing** via context menu and keyboard shortcuts
+- **⌨️ Keyboard shortcut sharing** (Ctrl+Shift+S) for quick text selection
 - **🔒 End-to-end encryption** (AES-GCM / ECDH) between clients
 - **⚡ Real-time messaging** through WebSocket connections
 - **📋 Copy room IDs** to clipboard for easy sharing
@@ -55,16 +55,16 @@ A Chrome extension for sharing sensitive data securely via ephemeral WebSocket c
 
 ### Text Selection Sharing
 
-1. **Right-click method**: Select any text on a webpage, right-click, and choose "Share securely with Ephero"
-2. **Keyboard shortcut**: Select text and press `Ctrl+Shift+S` for quick sharing
-3. The selected text will automatically populate the message input
-4. Create or join a room to share the selected content
+1. **Keyboard shortcut**: Select text and press `Ctrl+Shift+S` for quick sharing
+2. The selected text will automatically populate the message input
+3. Create or join a room to share the selected content
 
-### Context Menu Integration
+### Keyboard Shortcut Integration
 
-- Right-click on any selected text to access the secure sharing option
+- Select any text on a webpage and press `Ctrl+Shift+S`
 - The extension will highlight the selected text briefly
 - A notification will appear confirming the text is ready for sharing
+- The text will be auto-filled in the popup when opened
 
 ## 🏗 Architecture
 
@@ -109,15 +109,15 @@ chrome-extension/
    - Copy the room ID and share it
    - Open another browser/incognito window and join the room
    - Send messages between the two instances
-   - Test text selection sharing on any webpage
+   - Test text selection sharing on any webpage using Ctrl+Shift+S
    - Wait 5 minutes to test room expiration
 
 ### Advanced Testing
 
-- **Text selection**: Select text on any webpage and use right-click or Ctrl+Shift+S
-- **Context menu**: Verify the "Share securely" option appears
+- **Text selection**: Select text on any webpage and use Ctrl+Shift+S
 - **Keyboard shortcuts**: Test Ctrl+Shift+S for quick sharing
 - **Auto-fill**: Check that selected text populates the message input
+- **Connection handling**: Test with server offline/online
 
 ## 🔧 Development
 
@@ -156,6 +156,7 @@ The extension requires:
 - Check that content.js is properly loaded
 - Verify the extension has activeTab permission
 - Try refreshing the webpage after installing the extension
+- Use Ctrl+Shift+S instead of right-click context menu
 
 ### Messages not sending
 
