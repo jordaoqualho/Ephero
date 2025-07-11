@@ -7,6 +7,7 @@ export class Room implements IRoom {
   public lastActivity: number;
   public maxClients: number;
   public ttl: number;
+  public data?: string;
   private activityTimeout: ReturnType<typeof setTimeout> | null;
 
   constructor(id: string, ttl: number = 5 * 60 * 1000) {
@@ -95,5 +96,14 @@ export class Room implements IRoom {
       return 0;
     }
     return Math.max(0, this.ttl - (Date.now() - this.lastActivity));
+  }
+
+  setData(data: string): void {
+    this.data = data;
+    this.updateActivity();
+  }
+
+  getData(): string | undefined {
+    return this.data;
   }
 }

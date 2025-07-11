@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Ephero",
+  "name": "Ephero  - Secure Sharing",
   "version": "1.0.0",
   "description": "Secure ephemeral data sharing via WebSocket channels",
   "permissions": ["storage", "notifications", "activeTab"],
@@ -10,19 +10,19 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Ephero - Secure Sharing",
+    "default_title": "Ephero",
     "default_icon": {
-      "16": "icon.svg",
-      "32": "icon.svg",
-      "48": "icon.svg",
-      "128": "icon.svg"
+      "16": "ephero.png",
+      "32": "ephero.png",
+      "48": "ephero.png",
+      "128": "ephero.png"
     }
   },
   "icons": {
-    "16": "icon.svg",
-    "32": "icon.svg",
-    "48": "icon.svg",
-    "128": "icon.svg"
+    "16": "ephero.png",
+    "32": "ephero.png",
+    "48": "ephero.png",
+    "128": "ephero.png"
   },
   "content_scripts": [
     {

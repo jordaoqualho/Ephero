@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ephero - Secure Data Receiver</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .logo {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .title {
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 30px;
+      }
+
+      .status {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-weight: 500;
+      }
+
+      .status.loading {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+
+      .status.success {
+        background: #e8f5e8;
+        color: #2e7d32;
+      }
+
+      .status.error {
+        background: #ffebee;
+        color: #c62828;
+      }
+
+      .content {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        text-align: left;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+
+      .button:hover {
+        background: #5a6fd8;
+      }
+
+      .button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .copy-button {
+        background: #28a745;
+        margin-left: 10px;
+      }
+
+      .copy-button:hover {
+        background: #218838;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">🔒</div>
+      <h1 class="title">Ephero Secure Data Receiver</h1>
+
+      <div id="loadingStatus" class="status loading hidden">Connecting to server and retrieving data...</div>
+
+      <div id="errorStatus" class="status error hidden">
+        <span id="errorMessage"></span>
+      </div>
+
+      <div id="successStatus" class="status success hidden">Data retrieved and decrypted successfully!</div>
+
+      <div id="contentSection" class="hidden">
+        <h3>Decrypted Content:</h3>
+        <div id="content" class="content"></div>
+        <div style="margin-top: 20px">
+          <button id="copyButton" class="button copy-button">Copy to Clipboard</button>
+        </div>
+      </div>
+
+      <div id="noDataSection">
+        <p>No secure data found in URL. Please check the link and try again.</p>
+      </div>
+    </div>
+
+    <script>
+      let ws = null;
+      let roomId = null;
+      let aesKey = null;
+
+      // Parse URL hash for roomId and key
+      function parseURL() {
+        const hash = window.location.hash.substring(1);
+        if (!hash) {
+          showError("No secure link data found");
+          return false;
+        }
+
+        const parts = hash.split(":");
+        if (parts.length !== 2) {
+          showError("Invalid secure link format");
+          return false;
+        }
+
+        roomId = parts[0];
+        const keyBase64 = parts[1];
+
+        try {
+          aesKey = base64ToArrayBuffer(keyBase64);
+          return true;
+        } catch (error) {
+          showError("Invalid encryption key");
+          return false;
+        }
+      }
+
+      // Convert base64 string to ArrayBuffer
+      function base64ToArrayBuffer(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes.buffer;
+      }
+
+      // Decrypt text with AES-GCM
+      async function decryptText(encryptedData, key) {
+        const combined = base64ToArrayBuffer(encryptedData);
+        const iv = combined.slice(0, 12);
+        const encrypted = combined.slice(12);
+
+        const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "AES-GCM" }, false, ["decrypt"]);
+
+        const decrypted = await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: new Uint8Array(iv) },
+          cryptoKey,
+          encrypted
+        );
+
+        const decoder = new TextDecoder();
+        return decoder.decode(decrypted);
+      }
+
+      function showLoading() {
+        document.getElementById("loadingStatus").classList.remove("hidden");
+        document.getElementById("errorStatus").classList.add("hidden");
+        document.getElementById("successStatus").classList.add("hidden");
+        document.getElementById("contentSection").classList.add("hidden");
+        document.getElementById("noDataSection").classList.add("hidden");
+      }
+
+      function showError(message) {
+        document.getElementById("errorMessage").textContent = message;
+        document.getElementById("errorStatus").classList.remove("hidden");
+        document.getElementById("loadingStatus").classList.add("hidden");
+        document.getElementById("successStatus").classList.add("hidden");
+        document.getElementById("contentSection").classList.add("hidden");
+        document.getElementById("noDataSection").classList.remove("hidden");
+      }
+
+      function showSuccess(content) {
+        document.getElementById("content").textContent = content;
+        document.getElementById("contentSection").classList.remove("hidden");
+        document.getElementById("successStatus").classList.remove("hidden");
+        document.getElementById("loadingStatus").classList.add("hidden");
+        document.getElementById("errorStatus").classList.add("hidden");
+        document.getElementById("noDataSection").classList.add("hidden");
+      }
+
+      function connectWebSocket() {
+        try {
+          ws = new WebSocket("ws://localhost:8080");
+        } catch (error) {
+          showError("Failed to connect to server");
+          return;
+        }
+
+        ws.onopen = () => {
+          // Send join-room message
+          const message = {
+            type: "join-room",
+            roomId: roomId,
+          };
+          ws.send(JSON.stringify(message));
+        };
+
+        ws.onmessage = async (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "data-retrieved") {
+              try {
+                const decryptedText = await decryptText(data.payload, aesKey);
+                showSuccess(decryptedText);
+              } catch (error) {
+                showError("Failed to decrypt data");
+              }
+            } else if (data.type === "error") {
+              showError(data.error || "Server error");
+            }
+          } catch (error) {
+            showError("Invalid server response");
+          }
+        };
+
+        ws.onclose = () => {
+          showError("Connection lost");
+        };
+
+        ws.onerror = () => {
+          showError("Connection failed - check if server is running");
+        };
+      }
+
+      function copyToClipboard() {
+        const content = document.getElementById("content").textContent;
+        navigator.clipboard
+          .writeText(content)
+          .then(() => {
+            const button = document.getElementById("copyButton");
+            const originalText = button.textContent;
+            button.textContent = "Copied!";
+            setTimeout(() => {
+              button.textContent = originalText;
+            }, 2000);
+          })
+          .catch(() => {
+            showError("Failed to copy to clipboard");
+          });
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        if (parseURL()) {
+          showLoading();
+          connectWebSocket();
+        }
+
+        document.getElementById("copyButton").addEventListener("click", copyToClipboard);
+      });
+    </script>
+  </body>
+</html>

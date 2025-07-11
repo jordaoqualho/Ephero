@@ -17,6 +17,10 @@ export class MessageHandler implements IMessageHandler {
       [MESSAGE_TYPES.LEAVE_ROOM]: (client) => this.handleLeaveRoom(client),
       [MESSAGE_TYPES.GET_ROOMS]: (client) => this.handleGetRooms(client),
       [MESSAGE_TYPES.MESSAGE]: (client, data) => this.handleBroadcastMessage(client, data),
+      // New handlers for secure sharing
+      [MESSAGE_TYPES.CREATE_ROOM_SECURE]: (client) => this.handleCreateRoomSecure(client),
+      [MESSAGE_TYPES.SEND_DATA]: (client, data) => this.handleSendData(client, data),
+      [MESSAGE_TYPES.JOIN_ROOM_SECURE]: (client, data) => this.handleJoinRoomSecure(client, data),
     };
 
     const handler = handlers[data.type];
@@ -26,6 +30,92 @@ export class MessageHandler implements IMessageHandler {
       client.send({
         type: "error",
         error: `Unknown message type: ${data.type}`,
+      });
+    }
+  }
+
+  handleCreateRoomSecure(client: IClient): void {
+    const room = this.roomService.createRoom();
+    const result = this.roomService.addClientToRoom(room.id, client);
+
+    if (result.success) {
+      client.send({
+        type: "room-created",
+        roomId: room.id,
+      });
+    } else {
+      client.send({
+        type: "error",
+        error: result.error || "Failed to create room",
+      });
+    }
+  }
+
+  handleSendData(client: IClient, data: IMessageData): void {
+    if (!data.roomId) {
+      client.send({
+        type: "error",
+        error: "Room ID is required",
+      });
+      return;
+    }
+
+    if (!data.payload) {
+      client.send({
+        type: "error",
+        error: "Payload is required",
+      });
+      return;
+    }
+
+    const room = this.roomService.getRoom(data.roomId);
+    if (!room) {
+      client.send({
+        type: "error",
+        error: "Room not found",
+      });
+      return;
+    }
+
+    // Store the encrypted data in the room
+    room.setData(data.payload);
+
+    client.send({
+      type: "data-stored",
+      roomId: data.roomId,
+    });
+  }
+
+  handleJoinRoomSecure(client: IClient, data: IMessageData): void {
+    if (!data.roomId) {
+      client.send({
+        type: "error",
+        error: "Room ID is required",
+      });
+      return;
+    }
+
+    const result = this.roomService.addClientToRoom(data.roomId, client);
+
+    if (result.success && result.room) {
+      // Send the stored data to the client
+      const storedData = result.room.getData();
+      if (storedData) {
+        client.send({
+          type: "data-retrieved",
+          roomId: data.roomId,
+          payload: storedData,
+        });
+      } else {
+        client.send({
+          type: "error",
+          error: "No data found in room",
+        });
+      }
+    } else {
+      client.send({
+        type: "error",
+        error: result.error || "Failed to join room",
       });
     }
   }

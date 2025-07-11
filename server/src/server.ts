@@ -13,7 +13,7 @@ export class EpheroServer implements IEpheroServer {
   public clientService: ClientService;
   public messageHandler: MessageHandler;
 
-  constructor(port: number = 3000, defaultTTL: number = 5 * 60 * 1000) {
+  constructor(port: number = 8080, defaultTTL: number = 5 * 60 * 1000) {
     this.port = port;
     this.wss = null;
     this.httpServer = null;

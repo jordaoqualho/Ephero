@@ -15,54 +15,48 @@
 
       <div class="status-bar" id="statusBar">
         <div class="connection-status">
-          <span id="status">Disconnected</span>
-        </div>
-        <div class="ttl-timer" id="ttlTimer" style="display: none">
-          <span class="timer-label">Expires:</span>
-          <div class="timer" id="timer">05:00</div>
+          <span id="status">Ready</span>
         </div>
       </div>
 
       <main>
-        <div class="room-section" id="roomSection" style="display: none">
-          <div class="room-info">
-            <label>Room ID:</label>
-            <div class="room-id-container">
-              <div class="room-id" id="roomId"></div>
-              <button id="copyRoomId" class="btn btn-small">Copy</button>
+        <div class="share-section" id="shareSection">
+          <div class="input-container">
+            <label for="sensitiveText">Enter sensitive text:</label>
+            <textarea id="sensitiveText" placeholder="Type your sensitive information here..." rows="6"></textarea>
+          </div>
+
+          <div class="button-container">
+            <button id="shareSecurely" class="btn btn-primary">Share Securely</button>
+          </div>
+        </div>
+
+        <div class="result-section" id="resultSection" style="display: none">
+          <div class="result-info">
+            <h3>Secure Link Generated!</h3>
+            <p>
+              Your data has been encrypted and stored securely. The link below contains the decryption key and will
+              expire in 5 minutes.
+            </p>
+          </div>
+
+          <div class="link-container">
+            <label>Secure Link:</label>
+            <div class="link-display">
+              <input type="text" id="secureLink" readonly />
+              <button id="copyLink" class="btn btn-small">Copy</button>
             </div>
           </div>
 
-          <div class="room-actions">
-            <button id="leaveRoom" class="btn btn-danger">Leave Room</button>
+          <div class="button-container">
+            <button id="shareAgain" class="btn btn-secondary">Share Another</button>
           </div>
-        </div>
-
-        <div class="messages-section" id="messagesSection" style="display: none">
-          <div class="messages-header">
-            <h3>Messages</h3>
-            <button id="clearMessages" class="btn btn-small">Clear</button>
-          </div>
-          <div id="messages" class="messages"></div>
-        </div>
-
-        <div class="input-section" id="inputSection" style="display: none">
-          <label for="message">Send message:</label>
-          <div class="message-input-container">
-            <textarea id="message" placeholder="Type your message here..." rows="3"></textarea>
-            <button id="sendMessage" class="btn btn-send" disabled>Send</button>
-          </div>
-        </div>
-
-        <div class="button-section" id="roomActions">
-          <button id="createRoom" class="btn btn-primary">Create Room</button>
-          <button id="joinRoom" class="btn btn-secondary">Join Room</button>
         </div>
       </main>
 
       <footer>
         <div class="connection-info">
-          <span id="connectionInfo">Click Create Room or Join Room to start</span>
+          <span id="connectionInfo">Enter text and click Share Securely to create a secure link</span>
         </div>
       </footer>
     </div>
