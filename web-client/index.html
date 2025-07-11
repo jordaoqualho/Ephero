@@ -13,105 +13,161 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%);
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 20px;
+        color: #ffffff;
       }
 
       .container {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        background: #1a1a1a;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         padding: 40px;
         max-width: 600px;
         width: 100%;
         text-align: center;
+        border: 1px solid #333;
       }
 
       .logo {
-        font-size: 2.5rem;
-        margin-bottom: 10px;
+        font-size: 3rem;
+        margin-bottom: 15px;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
       }
 
       .title {
-        font-size: 1.5rem;
-        color: #333;
+        font-size: 1.8rem;
+        color: #ffffff;
         margin-bottom: 30px;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
 
       .status {
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-weight: 500;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
       }
 
       .status.loading {
-        background: #e3f2fd;
-        color: #1976d2;
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        color: #63b3ed;
+        border: 1px solid #4a5568;
+        box-shadow: 0 4px 12px rgba(99, 179, 237, 0.2);
       }
 
       .status.success {
-        background: #e8f5e8;
-        color: #2e7d32;
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        color: #48bb78;
+        border: 1px solid #4a5568;
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.2);
       }
 
       .status.error {
-        background: #ffebee;
-        color: #c62828;
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        color: #f56565;
+        border: 1px solid #4a5568;
+        box-shadow: 0 4px 12px rgba(245, 101, 101, 0.2);
       }
 
       .content {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 20px;
-        margin: 20px 0;
+        background: #2a2a2a;
+        border: 1px solid #4a5568;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 25px 0;
         white-space: pre-wrap;
         word-wrap: break-word;
         text-align: left;
-        font-family: "Courier New", monospace;
+        font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
         font-size: 14px;
-        line-height: 1.5;
-        max-height: 300px;
+        line-height: 1.6;
+        max-height: 400px;
         overflow-y: auto;
+        color: #e0e0e0;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
       .button {
-        background: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 12px 24px;
-        border-radius: 6px;
+        padding: 14px 28px;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 16px;
-        font-weight: 500;
-        transition: background 0.2s;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s;
+      }
+
+      .button:hover::before {
+        left: 100%;
       }
 
       .button:hover {
-        background: #5a6fd8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
       }
 
       .button:disabled {
-        background: #ccc;
+        background: #4a5568;
         cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
       }
 
       .copy-button {
-        background: #28a745;
-        margin-left: 10px;
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        margin-left: 15px;
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
       }
 
       .copy-button:hover {
-        background: #218838;
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
       }
 
       .hidden {
         display: none;
+      }
+
+      /* Custom scrollbar */
+      .content::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .content::-webkit-scrollbar-track {
+        background: #2a2a2a;
+        border-radius: 4px;
+      }
+
+      .content::-webkit-scrollbar-thumb {
+        background: #4a5568;
+        border-radius: 4px;
+      }
+
+      .content::-webkit-scrollbar-thumb:hover {
+        background: #5a6268;
       }
     </style>
   </head>
@@ -129,15 +185,17 @@
       <div id="successStatus" class="status success hidden">Data retrieved and decrypted successfully!</div>
 
       <div id="contentSection" class="hidden">
-        <h3>Decrypted Content:</h3>
+        <h3 style="margin-bottom: 15px; color: #48bb78; font-size: 18px">Decrypted Content:</h3>
         <div id="content" class="content"></div>
-        <div style="margin-top: 20px">
+        <div style="margin-top: 25px">
           <button id="copyButton" class="button copy-button">Copy to Clipboard</button>
         </div>
       </div>
 
       <div id="noDataSection">
-        <p>No secure data found in URL. Please check the link and try again.</p>
+        <p style="color: #a0aec0; font-size: 16px; line-height: 1.5">
+          No secure data found in URL. Please check the link and try again.
+        </p>
       </div>
     </div>
 
@@ -228,7 +286,7 @@
 
       function connectWebSocket() {
         try {
-          ws = new WebSocket("ws://localhost:8080");
+          ws = new WebSocket("ws://localhost:4000");
         } catch (error) {
           showError("Failed to connect to server");
           return;
