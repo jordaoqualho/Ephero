@@ -47,13 +47,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
 
     case "SEND_MESSAGE":
-      if (isConnected && backgroundWs) {
-        backgroundWs.send(
-          JSON.stringify({
-            type: "message",
-            content: message.content,
-          })
-        );
+      if (isConnected && backgroundWs && backgroundWs.readyState === WebSocket.OPEN) {
+        try {
+          backgroundWs.send(
+            JSON.stringify({
+              type: "message",
+              content: message.content,
+            })
+          );
+        } catch (error) {
+          console.error("Failed to send message:", error);
+        }
       }
       break;
   }
@@ -69,11 +73,20 @@ function initializeBackgroundConnection() {
 }
 
 function connectBackgroundWebSocket() {
-  if (!currentRoomId) return;
+  if (!currentRoomId) {
+    console.log("No room ID available for background connection");
+    return;
+  }
 
   const wsUrl = `ws://localhost:4000/join/${currentRoomId}`;
+  console.log("Attempting to connect to:", wsUrl);
 
   try {
+    if (backgroundWs) {
+      backgroundWs.close();
+      backgroundWs = null;
+    }
+
     backgroundWs = new WebSocket(wsUrl);
 
     backgroundWs.onopen = () => {
@@ -85,6 +98,7 @@ function connectBackgroundWebSocket() {
     backgroundWs.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log("Background received message:", data);
 
         if (data.type === "message") {
           const messageData = {
@@ -99,7 +113,7 @@ function connectBackgroundWebSocket() {
 
           showNotification("New message received", data.content);
         } else if (data.type === "error") {
-          console.error("Background WebSocket error:", data.message);
+          console.error("Background WebSocket error:", data.message || "Unknown error");
         } else if (data.type === "room-expired") {
           console.log("Room expired, cleaning up");
           currentRoomId = null;
@@ -137,16 +151,21 @@ function connectBackgroundWebSocket() {
     };
   } catch (error) {
     console.error("Failed to create background WebSocket:", error);
+    isConnected = false;
   }
 }
 
 function showNotification(title, message) {
-  chrome.notifications.create({
-    type: "basic",
-    iconUrl: "ephero.png",
-    title: title,
-    message: message,
-  });
+  try {
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: "ephero.png",
+      title: title,
+      message: message,
+    });
+  } catch (error) {
+    console.error("Failed to show notification:", error);
+  }
 }
 
 chrome.action.onClicked.addListener(() => {

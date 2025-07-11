@@ -107,9 +107,13 @@ const connectWebSocket = () => {
     updateStatus("Connected", "bg-green-600 text-green-100");
     updateConnectionInfo("Connected to server");
 
-    chrome.runtime.sendMessage({
-      type: "WEBSOCKET_CONNECTED",
-    });
+    try {
+      chrome.runtime.sendMessage({
+        type: "WEBSOCKET_CONNECTED",
+      });
+    } catch (error) {
+      console.error("Failed to send message to background:", error);
+    }
   };
 
   ws.onmessage = (event) => {
@@ -127,9 +131,13 @@ const connectWebSocket = () => {
     updateStatus("Disconnected", "bg-gray-700 text-gray-300");
     updateConnectionInfo("Connection lost");
 
-    chrome.runtime.sendMessage({
-      type: "WEBSOCKET_DISCONNECTED",
-    });
+    try {
+      chrome.runtime.sendMessage({
+        type: "WEBSOCKET_DISCONNECTED",
+      });
+    } catch (error) {
+      console.error("Failed to send message to background:", error);
+    }
   };
 
   ws.onerror = (error) => {
@@ -169,10 +177,14 @@ const handleRoomCreated = async (roomId) => {
 
   ws.send(JSON.stringify(message));
 
-  chrome.runtime.sendMessage({
-    type: "ROOM_CREATED",
-    roomId: roomId,
-  });
+  try {
+    chrome.runtime.sendMessage({
+      type: "ROOM_CREATED",
+      roomId: roomId,
+    });
+  } catch (error) {
+    console.error("Failed to send room created message to background:", error);
+  }
 };
 
 const handleDataStored = (roomId) => {
@@ -227,9 +239,13 @@ const resetForm = () => {
   updateStatus("Ready", "bg-gray-700 text-gray-300");
   updateConnectionInfo("Enter text to share securely");
 
-  chrome.runtime.sendMessage({
-    type: "ROOM_LEFT",
-  });
+  try {
+    chrome.runtime.sendMessage({
+      type: "ROOM_LEFT",
+    });
+  } catch (error) {
+    console.error("Failed to send room left message to background:", error);
+  }
 };
 
 const shareSecurely = async () => {
