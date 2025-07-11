@@ -4,525 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ephero</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        width: 384px;
-        min-height: 500px;
-        background-color: #111827;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      }
-
-      .flex {
-        display: flex;
-      }
-
-      .flex-col {
-        flex-direction: column;
-      }
-
-      .h-full {
-        height: 100%;
-      }
-
-      .bg-gradient-to-br {
-        background: linear-gradient(to bottom right, #7c3aed, #5b21b6);
-      }
-
-      .from-ephero-600 {
-        --tw-gradient-from: #7c3aed;
-      }
-
-      .to-ephero-800 {
-        --tw-gradient-to: #5b21b6;
-      }
-
-      .px-6 {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-      }
-
-      .py-8 {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-      }
-
-      .text-center {
-        text-align: center;
-      }
-
-      .text-2xl {
-        font-size: 1.5rem;
-        line-height: 2rem;
-      }
-
-      .font-bold {
-        font-weight: 700;
-      }
-
-      .text-white {
-        color: white;
-      }
-
-      .mb-2 {
-        margin-bottom: 0.5rem;
-      }
-
-      .text-ephero-100 {
-        color: #ede9fe;
-      }
-
-      .text-sm {
-        font-size: 0.875rem;
-        line-height: 1.25rem;
-      }
-
-      .bg-gray-800 {
-        background-color: #1f2937;
-      }
-
-      .py-3 {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-      }
-
-      .border-b {
-        border-bottom-width: 1px;
-      }
-
-      .border-gray-700 {
-        border-color: #374151;
-      }
-
-      .items-center {
-        align-items: center;
-      }
-
-      .justify-between {
-        justify-content: space-between;
-      }
-
-      .text-xs {
-        font-size: 0.75rem;
-        line-height: 1rem;
-      }
-
-      .font-medium {
-        font-weight: 500;
-      }
-
-      .px-3 {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-
-      .py-1 {
-        padding-top: 0.25rem;
-        padding-bottom: 0.25rem;
-      }
-
-      .rounded-full {
-        border-radius: 9999px;
-      }
-
-      .bg-gray-700 {
-        background-color: #374151;
-      }
-
-      .text-gray-300 {
-        color: #d1d5db;
-      }
-
-      .text-gray-400 {
-        color: #9ca3af;
-      }
-
-      .flex-1 {
-        flex: 1 1 0%;
-      }
-
-      .p-6 {
-        padding: 1.5rem;
-      }
-
-      .space-y-6 > * + * {
-        margin-top: 1.5rem;
-      }
-
-      .space-y-3 > * + * {
-        margin-top: 0.75rem;
-      }
-
-      .space-y-4 > * + * {
-        margin-top: 1rem;
-      }
-
-      .block {
-        display: block;
-      }
-
-      .uppercase {
-        text-transform: uppercase;
-      }
-
-      .tracking-wide {
-        letter-spacing: 0.05em;
-      }
-
-      .w-full {
-        width: 100%;
-      }
-
-      .py-3 {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-      }
-
-      .bg-gray-800 {
-        background-color: #1f2937;
-      }
-
-      .border {
-        border-width: 1px;
-      }
-
-      .border-gray-600 {
-        border-color: #4b5563;
-      }
-
-      .rounded-xl {
-        border-radius: 0.75rem;
-      }
-
-      .placeholder-gray-500::placeholder {
-        color: #6b7280;
-      }
-
-      .focus\:outline-none:focus {
-        outline: 2px solid transparent;
-        outline-offset: 2px;
-      }
-
-      .focus\:ring-2:focus {
-        box-shadow: 0 0 0 2px #8b5cf6;
-      }
-
-      .focus\:ring-ephero-500:focus {
-        --tw-ring-color: #8b5cf6;
-      }
-
-      .focus\:border-transparent:focus {
-        border-color: transparent;
-      }
-
-      .resize-none {
-        resize: none;
-      }
-
-      .transition-all {
-        transition-property: all;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 150ms;
-      }
-
-      .duration-200 {
-        transition-duration: 200ms;
-      }
-
-      .justify-center {
-        justify-content: center;
-      }
-
-      .bg-gradient-to-r {
-        background: linear-gradient(to right, #7c3aed, #6d28d9);
-      }
-
-      .from-ephero-600 {
-        --tw-gradient-from: #7c3aed;
-      }
-
-      .to-ephero-700 {
-        --tw-gradient-to: #6d28d9;
-      }
-
-      .hover\:from-ephero-700:hover {
-        --tw-gradient-from: #6d28d9;
-      }
-
-      .hover\:to-ephero-800:hover {
-        --tw-gradient-to: #5b21b6;
-      }
-
-      .text-white {
-        color: white;
-      }
-
-      .font-semibold {
-        font-weight: 600;
-      }
-
-      .px-8 {
-        padding-left: 2rem;
-        padding-right: 2rem;
-      }
-
-      .shadow-lg {
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      }
-
-      .hover\:shadow-xl:hover {
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      }
-
-      .transform {
-        transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1);
-      }
-
-      .hover\:scale-105:hover {
-        transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1.05) scaleY(1.05);
-      }
-
-      .active\:scale-95:active {
-        transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(0.95) scaleY(0.95);
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      .bg-gray-900 {
-        background-color: #111827;
-      }
-
-      .p-3 {
-        padding: 0.75rem;
-      }
-
-      .rounded-lg {
-        border-radius: 0.5rem;
-      }
-
-      .text-sm {
-        font-size: 0.875rem;
-        line-height: 1.25rem;
-      }
-
-      .font-mono {
-        font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-      }
-
-      .gap-3 {
-        gap: 0.75rem;
-      }
-
-      .hover\:bg-gray-600:hover {
-        background-color: #4b5563;
-      }
-
-      .text-white {
-        color: white;
-      }
-
-      .px-4 {
-        padding-left: 1rem;
-        padding-right: 1rem;
-      }
-
-      .bg-ephero-600 {
-        background-color: #7c3aed;
-      }
-
-      .hover\:bg-ephero-700:hover {
-        background-color: #6d28d9;
-      }
-
-      .px-6 {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-      }
-
-      .fixed {
-        position: fixed;
-      }
-
-      .bottom-4 {
-        bottom: 1rem;
-      }
-
-      .left-4 {
-        left: 1rem;
-      }
-
-      .right-4 {
-        right: 1rem;
-      }
-
-      .border-gray-600 {
-        border-color: #4b5563;
-      }
-
-      .opacity-0 {
-        opacity: 0;
-      }
-
-      .transform {
-        transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1);
-      }
-
-      .translate-y-2 {
-        transform: translateX(0) translateY(0.5rem) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1);
-      }
-
-      .transition-all {
-        transition-property: all;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 150ms;
-      }
-
-      .duration-300 {
-        transition-duration: 300ms;
-      }
-
-      .pointer-events-none {
-        pointer-events: none;
-      }
-
-      .bg-green-600 {
-        background-color: #059669;
-      }
-
-      .text-green-100 {
-        color: #dcfce7;
-      }
-
-      .bg-yellow-600 {
-        background-color: #d97706;
-      }
-
-      .text-yellow-100 {
-        color: #fef3c7;
-      }
-
-      .bg-red-600 {
-        background-color: #dc2626;
-      }
-
-      .text-red-100 {
-        color: #fee2e2;
-      }
-
-      .opacity-100 {
-        opacity: 1;
-      }
-
-      .translate-y-0 {
-        transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1);
-      }
-
-      .text-lg {
-        font-size: 1.125rem;
-        line-height: 1.75rem;
-      }
-
-      .mb-4 {
-        margin-bottom: 1rem;
-      }
-
-      .py-2 {
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-      }
-
-      .secure-link-card {
-        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-        border: 1px solid #374151;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      }
-
-      .secure-link-input {
-        background-color: #111827;
-        border: 1px solid #4b5563;
-        border-radius: 0.75rem;
-        padding: 1rem;
-        color: #d1d5db;
-        font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-        font-size: 0.875rem;
-        width: 100%;
-        outline: none;
-        transition: all 0.2s ease;
-      }
-
-      .secure-link-input:focus {
-        border-color: #8b5cf6;
-        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-      }
-
-      .button-group {
-        display: flex;
-        gap: 0.75rem;
-        margin-top: 1rem;
-      }
-
-      .btn {
-        flex: 1;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        font-weight: 500;
-        font-size: 0.875rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-        outline: none;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .btn-copy {
-        background-color: #374151;
-        color: white;
-      }
-
-      .btn-copy:hover {
-        background-color: #4b5563;
-        transform: scale(1.02);
-      }
-
-      .btn-open {
-        background-color: #7c3aed;
-        color: white;
-      }
-
-      .btn-open:hover {
-        background-color: #6d28d9;
-        transform: scale(1.02);
-      }
-
-      .btn-secondary {
-        background-color: #374151;
-        color: white;
-        padding: 0.75rem 1.5rem;
-      }
-
-      .btn-secondary:hover {
-        background-color: #4b5563;
-        transform: scale(1.02);
-      }
-
-      .btn:active {
-        transform: scale(0.98);
-      }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ephero: {
+                100: "#ede9fe",
+                500: "#8b5cf6",
+                600: "#7c3aed",
+                700: "#6d28d9",
+                800: "#5b21b6",
+              },
+            },
+          },
+        },
+      };
+    </script>
   </head>
   <body class="w-96 min-h-[500px] bg-gray-900 text-white">
     <div class="flex flex-col h-full">
@@ -563,19 +62,39 @@
         </div>
 
         <div id="resultSection" class="hidden space-y-6">
-          <div class="secure-link-card">
+          <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <h3 class="text-lg font-semibold text-white mb-4">Secure Link Generated</h3>
             <div class="space-y-4">
-              <input type="text" id="secureLink" readonly class="secure-link-input" />
-              <div class="button-group">
-                <button id="copyLink" class="btn btn-copy">Copy</button>
-                <button id="openLink" class="btn btn-open">Open</button>
+              <input
+                type="text"
+                id="secureLink"
+                readonly
+                class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm text-gray-300 font-mono focus:outline-none focus:ring-2 focus:ring-ephero-500"
+              />
+              <div class="flex gap-3">
+                <button
+                  id="copyLink"
+                  class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                >
+                  Copy
+                </button>
+                <button
+                  id="openLink"
+                  class="flex-1 bg-ephero-600 hover:bg-ephero-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                >
+                  Open
+                </button>
               </div>
             </div>
           </div>
 
           <div class="flex justify-center">
-            <button id="shareAgain" class="btn btn-secondary">Share Another</button>
+            <button
+              id="shareAgain"
+              class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              Share Another
+            </button>
           </div>
         </div>
       </main>

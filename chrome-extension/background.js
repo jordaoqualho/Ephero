@@ -1,210 +1,255 @@
-let backgroundWs = null;
-let currentRoomId = null;
-let isConnected = false;
-let reconnectAttempts = 0;
-const maxReconnectAttempts = 3;
+class BackgroundService {
+  constructor() {
+    this.backgroundWs = null;
+    this.currentRoomId = null;
+    this.isConnected = false;
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 3;
+    this.pendingMessages = [];
 
-let pendingMessages = [];
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Background received message:", message);
-
-  switch (message.type) {
-    case "WEBSOCKET_CONNECTED":
-      isConnected = true;
-      reconnectAttempts = 0;
-      break;
-
-    case "WEBSOCKET_DISCONNECTED":
-      isConnected = false;
-      break;
-
-    case "ROOM_CREATED":
-      currentRoomId = message.roomId;
-      chrome.storage.local.set({
-        currentRoomId: message.roomId,
-        roomCreatedAt: Date.now(),
-      });
-
-      if (backgroundWs && backgroundWs.readyState === WebSocket.OPEN) {
-        backgroundWs.close();
-      }
-
-      setTimeout(() => {
-        connectBackgroundWebSocket();
-      }, 1000);
-      break;
-
-    case "ROOM_LEFT":
-      currentRoomId = null;
-      isConnected = false;
-      chrome.storage.local.remove(["currentRoomId", "roomCreatedAt"]);
-
-      if (backgroundWs) {
-        backgroundWs.close();
-        backgroundWs = null;
-      }
-      break;
-
-    case "SEND_MESSAGE":
-      if (isConnected && backgroundWs && backgroundWs.readyState === WebSocket.OPEN) {
-        try {
-          backgroundWs.send(
-            JSON.stringify({
-              type: "message",
-              content: message.content,
-            })
-          );
-        } catch (error) {
-          console.error("Failed to send message:", error);
-        }
-      }
-      break;
-  }
-});
-
-function initializeBackgroundConnection() {
-  chrome.storage.local.get(["currentRoomId"], (result) => {
-    if (result.currentRoomId) {
-      currentRoomId = result.currentRoomId;
-      connectBackgroundWebSocket();
-    }
-  });
-}
-
-function connectBackgroundWebSocket() {
-  if (!currentRoomId) {
-    console.log("No room ID available for background connection");
-    return;
+    this.initializeMessageListener();
+    this.initializeEventListeners();
+    this.initializeBackgroundConnection();
   }
 
-  const wsUrl = `ws://localhost:4000/join/${currentRoomId}`;
-  console.log("Attempting to connect to:", wsUrl);
+  initializeMessageListener() {
+    chrome.runtime.onMessage.addListener((message) => this.handleMessage(message));
+  }
 
-  try {
-    if (backgroundWs) {
-      backgroundWs.close();
-      backgroundWs = null;
-    }
+  initializeEventListeners() {
+    chrome.action.onClicked.addListener(() => this.handlePopupOpen());
+    chrome.runtime.onStartup.addListener(() => this.initializeBackgroundConnection());
+    chrome.runtime.onInstalled.addListener(() => this.initializeBackgroundConnection());
+  }
 
-    backgroundWs = new WebSocket(wsUrl);
+  handleMessage(message) {
+    console.log("Background received message:", message);
 
-    backgroundWs.onopen = () => {
-      console.log("Background WebSocket connected to room:", currentRoomId);
-      isConnected = true;
-      reconnectAttempts = 0;
+    const handlers = {
+      WEBSOCKET_CONNECTED: () => this.handleWebSocketConnected(),
+      WEBSOCKET_DISCONNECTED: () => this.handleWebSocketDisconnected(),
+      ROOM_CREATED: (roomId) => this.handleRoomCreated(roomId),
+      ROOM_LEFT: () => this.handleRoomLeft(),
+      SEND_MESSAGE: (content) => this.handleSendMessage(content),
     };
 
-    backgroundWs.onmessage = (event) => {
+    const handler = handlers[message.type];
+    if (handler) {
+      handler(message.roomId || message.content);
+    }
+  }
+
+  handleWebSocketConnected() {
+    this.isConnected = true;
+    this.reconnectAttempts = 0;
+  }
+
+  handleWebSocketDisconnected() {
+    this.isConnected = false;
+  }
+
+  handleRoomCreated(roomId) {
+    this.currentRoomId = roomId;
+    this.persistRoomData(roomId);
+    this.reconnectToRoom();
+  }
+
+  handleRoomLeft() {
+    this.currentRoomId = null;
+    this.isConnected = false;
+    this.clearRoomData();
+    this.closeWebSocket();
+  }
+
+  handleSendMessage(content) {
+    if (this.isConnected && this.backgroundWs && this.backgroundWs.readyState === WebSocket.OPEN) {
       try {
-        const data = JSON.parse(event.data);
-        console.log("Background received message:", data);
-
-        if (data.type === "message") {
-          const messageData = {
-            content: data.content,
-            timestamp: Date.now(),
-          };
-          pendingMessages.push(messageData);
-
-          if (pendingMessages.length > 50) {
-            pendingMessages = pendingMessages.slice(-50);
-          }
-
-          showNotification("New message received", data.content);
-        } else if (data.type === "error") {
-          console.error("Background WebSocket error:", data.message || "Unknown error");
-        } else if (data.type === "room-expired") {
-          console.log("Room expired, cleaning up");
-          currentRoomId = null;
-          chrome.storage.local.remove(["currentRoomId", "roomCreatedAt"]);
-          if (backgroundWs) {
-            backgroundWs.close();
-            backgroundWs = null;
-          }
-        }
+        this.backgroundWs.send(
+          JSON.stringify({
+            type: "message",
+            content: content,
+          })
+        );
       } catch (error) {
-        console.error("Error parsing background message:", error);
-      }
-    };
-
-    backgroundWs.onclose = (event) => {
-      console.log("Background WebSocket disconnected:", event.code, event.reason);
-      isConnected = false;
-
-      if (reconnectAttempts < maxReconnectAttempts && currentRoomId) {
-        reconnectAttempts++;
-        console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
-        setTimeout(() => {
-          connectBackgroundWebSocket();
-        }, 2000 * reconnectAttempts);
-      } else if (reconnectAttempts >= maxReconnectAttempts) {
-        console.log("Max reconnection attempts reached, cleaning up");
-        currentRoomId = null;
-        chrome.storage.local.remove(["currentRoomId", "roomCreatedAt"]);
-      }
-    };
-
-    backgroundWs.onerror = (error) => {
-      console.error("Background WebSocket error:", error);
-      isConnected = false;
-    };
-  } catch (error) {
-    console.error("Failed to create background WebSocket:", error);
-    isConnected = false;
-  }
-}
-
-function showNotification(title, message) {
-  try {
-    chrome.notifications.create({
-      type: "basic",
-      iconUrl: "ephero.png",
-      title: title,
-      message: message,
-    });
-  } catch (error) {
-    console.error("Failed to show notification:", error);
-  }
-}
-
-chrome.action.onClicked.addListener(() => {
-  if (pendingMessages.length > 0) {
-    chrome.runtime.sendMessage({
-      type: "PENDING_MESSAGES",
-      messages: pendingMessages,
-    });
-    pendingMessages = [];
-  }
-});
-
-function checkRoomExpiration() {
-  chrome.storage.local.get(["roomCreatedAt"], (result) => {
-    if (result.roomCreatedAt) {
-      const roomAge = Date.now() - result.roomCreatedAt;
-      const maxRoomAge = 5 * 60 * 1000;
-
-      if (roomAge > maxRoomAge) {
-        console.log("Room expired, cleaning up");
-        currentRoomId = null;
-        chrome.storage.local.remove(["currentRoomId", "roomCreatedAt"]);
-        if (backgroundWs) {
-          backgroundWs.close();
-          backgroundWs = null;
-        }
+        console.error("Failed to send message:", error);
       }
     }
-  });
+  }
+
+  persistRoomData(roomId) {
+    chrome.storage.local.set({
+      currentRoomId: roomId,
+      roomCreatedAt: Date.now(),
+    });
+  }
+
+  clearRoomData() {
+    chrome.storage.local.remove(["currentRoomId", "roomCreatedAt"]);
+  }
+
+  closeWebSocket() {
+    if (this.backgroundWs) {
+      this.backgroundWs.close();
+      this.backgroundWs = null;
+    }
+  }
+
+  reconnectToRoom() {
+    if (this.backgroundWs && this.backgroundWs.readyState === WebSocket.OPEN) {
+      this.backgroundWs.close();
+    }
+
+    setTimeout(() => {
+      this.connectBackgroundWebSocket();
+    }, 1000);
+  }
+
+  initializeBackgroundConnection() {
+    chrome.storage.local.get(["currentRoomId"], (result) => {
+      if (result.currentRoomId) {
+        this.currentRoomId = result.currentRoomId;
+        this.connectBackgroundWebSocket();
+      }
+    });
+  }
+
+  connectBackgroundWebSocket() {
+    if (!this.currentRoomId) {
+      console.log("No room ID available for background connection");
+      return;
+    }
+
+    const wsUrl = `ws://localhost:4000/join/${this.currentRoomId}`;
+    console.log("Attempting to connect to:", wsUrl);
+
+    try {
+      this.closeWebSocket();
+      this.backgroundWs = new WebSocket(wsUrl);
+      this.setupWebSocketHandlers();
+    } catch (error) {
+      console.error("Failed to create background WebSocket:", error);
+      this.isConnected = false;
+    }
+  }
+
+  setupWebSocketHandlers() {
+    this.backgroundWs.onopen = () => this.handleBackgroundWebSocketOpen();
+    this.backgroundWs.onmessage = (event) => this.handleBackgroundWebSocketMessage(event);
+    this.backgroundWs.onclose = (event) => this.handleBackgroundWebSocketClose(event);
+    this.backgroundWs.onerror = (error) => this.handleBackgroundWebSocketError(error);
+  }
+
+  handleBackgroundWebSocketOpen() {
+    console.log("Background WebSocket connected to room:", this.currentRoomId);
+    this.isConnected = true;
+    this.reconnectAttempts = 0;
+  }
+
+  handleBackgroundWebSocketMessage(event) {
+    try {
+      const data = JSON.parse(event.data);
+      console.log("Background received message:", data);
+      this.processBackgroundMessage(data);
+    } catch (error) {
+      console.error("Error parsing background message:", error);
+    }
+  }
+
+  processBackgroundMessage(data) {
+    const handlers = {
+      message: (content) => this.handleBackgroundMessage(content),
+      error: (message) => console.error("Background WebSocket error:", message || "Unknown error"),
+      "room-expired": () => this.handleRoomExpired(),
+    };
+
+    const handler = handlers[data.type];
+    if (handler) {
+      handler(data.content || data.message);
+    }
+  }
+
+  handleBackgroundMessage(content) {
+    const messageData = {
+      content: content,
+      timestamp: Date.now(),
+    };
+    this.pendingMessages.push(messageData);
+
+    if (this.pendingMessages.length > 50) {
+      this.pendingMessages = this.pendingMessages.slice(-50);
+    }
+
+    this.showNotification("New message received", content);
+  }
+
+  handleRoomExpired() {
+    console.log("Room expired, cleaning up");
+    this.currentRoomId = null;
+    this.clearRoomData();
+    this.closeWebSocket();
+  }
+
+  handleBackgroundWebSocketClose(event) {
+    console.log("Background WebSocket disconnected:", event.code, event.reason);
+    this.isConnected = false;
+
+    if (this.reconnectAttempts < this.maxReconnectAttempts && this.currentRoomId) {
+      this.reconnectAttempts++;
+      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      setTimeout(() => {
+        this.connectBackgroundWebSocket();
+      }, 2000 * this.reconnectAttempts);
+    } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log("Max reconnection attempts reached, cleaning up");
+      this.currentRoomId = null;
+      this.clearRoomData();
+    }
+  }
+
+  handleBackgroundWebSocketError(error) {
+    console.error("Background WebSocket error:", error);
+    this.isConnected = false;
+  }
+
+  handlePopupOpen() {
+    if (this.pendingMessages.length > 0) {
+      chrome.runtime.sendMessage({
+        type: "PENDING_MESSAGES",
+        messages: this.pendingMessages,
+      });
+      this.pendingMessages = [];
+    }
+  }
+
+  showNotification(title, message) {
+    try {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "ephero.png",
+        title: title,
+        message: message,
+      });
+    } catch (error) {
+      console.error("Failed to show notification:", error);
+    }
+  }
+
+  checkRoomExpiration() {
+    chrome.storage.local.get(["roomCreatedAt"], (result) => {
+      if (result.roomCreatedAt) {
+        const roomAge = Date.now() - result.roomCreatedAt;
+        const maxRoomAge = 5 * 60 * 1000;
+
+        if (roomAge > maxRoomAge) {
+          console.log("Room expired, cleaning up");
+          this.currentRoomId = null;
+          this.clearRoomData();
+          this.closeWebSocket();
+        }
+      }
+    });
+  }
 }
 
-initializeBackgroundConnection();
-
-chrome.runtime.onStartup.addListener(() => {
-  initializeBackgroundConnection();
-});
-
-chrome.runtime.onInstalled.addListener(() => {
-  initializeBackgroundConnection();
-});
-
-setInterval(checkRoomExpiration, 30000);
+const backgroundService = new BackgroundService();
+setInterval(() => backgroundService.checkRoomExpiration(), 30000);
