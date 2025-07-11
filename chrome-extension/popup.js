@@ -13,60 +13,68 @@ const elements = {
   shareAgain: document.getElementById("shareAgain"),
   status: document.getElementById("status"),
   connectionInfo: document.getElementById("connectionInfo"),
+  toast: document.getElementById("toast"),
+  toastMessage: document.getElementById("toastMessage"),
 };
 
-function updateStatus(status, className = "") {
+const updateStatus = (status, className = "") => {
   elements.status.textContent = status;
-  elements.status.className = className;
-}
+  elements.status.className = `text-xs font-medium px-3 py-1 rounded-full ${className}`;
+};
 
-function updateConnectionInfo(info) {
+const updateConnectionInfo = (info) => {
   elements.connectionInfo.textContent = info;
-}
+};
 
-function showError(message) {
-  const errorDiv = document.createElement("div");
-  errorDiv.className = "error";
-  errorDiv.textContent = message;
-  document.querySelector(".container").insertBefore(errorDiv, document.querySelector("main"));
-  setTimeout(() => errorDiv.remove(), 5000);
-}
+const showToast = (message, type = "info") => {
+  const toast = elements.toast;
+  const toastMessage = elements.toastMessage;
 
-function showSuccess(message) {
-  const successDiv = document.createElement("div");
-  successDiv.className = "success";
-  successDiv.textContent = message;
-  document.querySelector(".container").insertBefore(successDiv, document.querySelector("main"));
-  setTimeout(() => successDiv.remove(), 3000);
-}
+  toastMessage.textContent = message;
 
-// Generate a random AES key
-function generateAESKey() {
-  return crypto.getRandomValues(new Uint8Array(32));
-}
+  toast.classList.remove("bg-gray-800", "bg-green-600", "bg-red-600");
 
-// Convert ArrayBuffer to base64 string
-function arrayBufferToBase64(buffer) {
+  switch (type) {
+    case "success":
+      toast.classList.add("bg-green-600");
+      break;
+    case "error":
+      toast.classList.add("bg-red-600");
+      break;
+    default:
+      toast.classList.add("bg-gray-800");
+  }
+
+  toast.classList.remove("opacity-0", "translate-y-2", "pointer-events-none");
+  toast.classList.add("opacity-100", "translate-y-0");
+
+  setTimeout(() => {
+    toast.classList.remove("opacity-100", "translate-y-0");
+    toast.classList.add("opacity-0", "translate-y-2", "pointer-events-none");
+  }, 2000);
+};
+
+const generateAESKey = () => crypto.getRandomValues(new Uint8Array(32));
+
+const arrayBufferToBase64 = (buffer) => {
   const bytes = new Uint8Array(buffer);
   let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
   return btoa(binary);
-}
+};
 
-// Convert base64 string to ArrayBuffer
-function base64ToArrayBuffer(base64) {
+const base64ToArrayBuffer = (base64) => {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
   return bytes.buffer;
-}
+};
 
-// Encrypt text with AES-GCM
-async function encryptText(text, key) {
+const encryptText = async (text, key) => {
   const encoder = new TextEncoder();
   const data = encoder.encode(text);
 
@@ -75,44 +83,33 @@ async function encryptText(text, key) {
 
   const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, cryptoKey, data);
 
-  // Combine IV and encrypted data
   const combined = new Uint8Array(iv.length + encrypted.byteLength);
   combined.set(iv);
   combined.set(new Uint8Array(encrypted), iv.length);
 
   return arrayBufferToBase64(combined);
-}
+};
 
-// Decrypt text with AES-GCM
-async function decryptText(encryptedData, key) {
-  const combined = base64ToArrayBuffer(encryptedData);
-  const iv = combined.slice(0, 12);
-  const encrypted = combined.slice(12);
-
-  const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "AES-GCM" }, false, ["decrypt"]);
-
-  const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(iv) }, cryptoKey, encrypted);
-
-  const decoder = new TextDecoder();
-  return decoder.decode(decrypted);
-}
-
-function connectWebSocket() {
+const connectWebSocket = () => {
   try {
     ws = new WebSocket("ws://localhost:4000");
   } catch (error) {
     console.error("Failed to create WebSocket:", error);
-    showError("Failed to create connection");
+    showToast("Failed to create connection", "error");
     return;
   }
 
-  updateStatus("Connecting...", "connecting");
+  updateStatus("Connecting...", "bg-yellow-600 text-yellow-100");
   updateConnectionInfo("Establishing connection...");
 
   ws.onopen = () => {
     isConnected = true;
-    updateStatus("Connected", "connected");
+    updateStatus("Connected", "bg-green-600 text-green-100");
     updateConnectionInfo("Connected to server");
+
+    chrome.runtime.sendMessage({
+      type: "WEBSOCKET_CONNECTED",
+    });
   };
 
   ws.onmessage = (event) => {
@@ -121,47 +118,49 @@ function connectWebSocket() {
       handleServerMessage(data);
     } catch (error) {
       console.error("Error parsing message:", error);
-      showError("Invalid server response");
+      showToast("Invalid server response", "error");
     }
   };
 
   ws.onclose = () => {
     isConnected = false;
-    updateStatus("Disconnected");
+    updateStatus("Disconnected", "bg-gray-700 text-gray-300");
     updateConnectionInfo("Connection lost");
+
+    chrome.runtime.sendMessage({
+      type: "WEBSOCKET_DISCONNECTED",
+    });
   };
 
   ws.onerror = (error) => {
     console.error("WebSocket error:", error);
-    showError("Connection failed - check if server is running");
-    updateStatus("Error");
+    showToast("Connection failed - check if server is running", "error");
+    updateStatus("Error", "bg-red-600 text-red-100");
     isConnected = false;
     updateConnectionInfo("Connection failed");
   };
-}
+};
 
-function handleServerMessage(data) {
+const handleServerMessage = (data) => {
   if (data.type === "room-created") {
     handleRoomCreated(data.roomId);
   } else if (data.type === "data-stored") {
     handleDataStored(data.roomId);
   } else if (data.type === "error") {
-    showError(data.message || "Server error");
+    showToast(data.message || "Server error", "error");
   }
-}
+};
 
-async function handleRoomCreated(roomId) {
+const handleRoomCreated = async (roomId) => {
   const text = elements.sensitiveText.value.trim();
   if (!text) {
-    showError("Please enter some text to share");
+    showToast("Please enter some text to share", "error");
     return;
   }
 
-  // Generate AES key and encrypt the text
   currentAESKey = generateAESKey();
   const encryptedText = await encryptText(text, currentAESKey);
 
-  // Send encrypted data to server
   const message = {
     type: "send-data",
     roomId: roomId,
@@ -169,38 +168,40 @@ async function handleRoomCreated(roomId) {
   };
 
   ws.send(JSON.stringify(message));
-}
 
-function handleDataStored(roomId) {
-  // Generate the secure link with roomId and AES key
+  chrome.runtime.sendMessage({
+    type: "ROOM_CREATED",
+    roomId: roomId,
+  });
+};
+
+const handleDataStored = (roomId) => {
   const keyBase64 = arrayBufferToBase64(currentAESKey);
   const secureLink = `http://localhost:4000/#${roomId}:${keyBase64}`;
 
-  // Display the result
   elements.secureLink.value = secureLink;
-  elements.shareSection.style.display = "none";
-  elements.resultSection.style.display = "block";
+  elements.shareSection.classList.add("hidden");
+  elements.resultSection.classList.remove("hidden");
 
-  // Copy to clipboard
   copyToClipboard(secureLink);
 
-  updateStatus("Success", "success");
+  updateStatus("Success", "bg-green-600 text-green-100");
   updateConnectionInfo("Secure link generated and copied to clipboard");
-  showSuccess("Link copied!");
-}
+  showToast("Link copied!", "success");
+};
 
-function copyToClipboard(text) {
+const copyToClipboard = (text) => {
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      showSuccess("Link copied to clipboard!");
+      showToast("Link copied!", "success");
     })
     .catch(() => {
-      showError("Failed to copy link");
+      showToast("Failed to copy link", "error");
     });
-}
+};
 
-function openLinkInNewWindow(url) {
+const openLinkInNewWindow = (url) => {
   chrome.windows.create(
     {
       url: url,
@@ -211,54 +212,55 @@ function openLinkInNewWindow(url) {
     },
     (window) => {
       if (chrome.runtime.lastError) {
-        showError("Failed to open link in new window");
+        showToast("Failed to open link in new window", "error");
       } else {
-        showSuccess("Link opened in new window!");
+        showToast("Link opened in new window!", "success");
       }
     }
   );
-}
+};
 
-function resetForm() {
+const resetForm = () => {
   elements.sensitiveText.value = "";
-  elements.shareSection.style.display = "block";
-  elements.resultSection.style.display = "none";
-  updateStatus("Ready");
-  updateConnectionInfo("Enter text and click Share Securely to create a secure link");
-}
+  elements.shareSection.classList.remove("hidden");
+  elements.resultSection.classList.add("hidden");
+  updateStatus("Ready", "bg-gray-700 text-gray-300");
+  updateConnectionInfo("Enter text to share securely");
 
-async function shareSecurely() {
+  chrome.runtime.sendMessage({
+    type: "ROOM_LEFT",
+  });
+};
+
+const shareSecurely = async () => {
   const text = elements.sensitiveText.value.trim();
   if (!text) {
-    showError("Please enter some text to share");
+    showToast("Please enter some text to share", "error");
     return;
   }
 
   if (!isConnected) {
     connectWebSocket();
-    // Wait a bit for connection to establish
     setTimeout(() => {
       if (isConnected) {
         shareSecurely();
       } else {
-        showError("Failed to connect to server");
+        showToast("Failed to connect to server", "error");
       }
     }, 1000);
     return;
   }
 
-  updateStatus("Creating secure room...", "connecting");
+  updateStatus("Creating secure room...", "bg-yellow-600 text-yellow-100");
   updateConnectionInfo("Creating secure room...");
 
-  // Send create-room message
   const message = {
     type: "create-room",
   };
 
   ws.send(JSON.stringify(message));
-}
+};
 
-// Event listeners
 elements.shareSecurely.addEventListener("click", shareSecurely);
 elements.copyLink.addEventListener("click", () => {
   copyToClipboard(elements.secureLink.value);
@@ -268,6 +270,11 @@ elements.openLink.addEventListener("click", () => {
 });
 elements.shareAgain.addEventListener("click", resetForm);
 
-// Initialize
-updateStatus("Ready");
-updateConnectionInfo("Enter text and click Share Securely to create a secure link");
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "PENDING_MESSAGES") {
+    console.log("Received pending messages:", message.messages);
+  }
+});
+
+updateStatus("Ready", "bg-gray-700 text-gray-300");
+updateConnectionInfo("Enter text to share securely");
