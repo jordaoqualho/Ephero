@@ -9,6 +9,7 @@ const elements = {
   resultSection: document.getElementById("resultSection"),
   secureLink: document.getElementById("secureLink"),
   copyLink: document.getElementById("copyLink"),
+  openLink: document.getElementById("openLink"),
   shareAgain: document.getElementById("shareAgain"),
   status: document.getElementById("status"),
   connectionInfo: document.getElementById("connectionInfo"),
@@ -98,7 +99,7 @@ async function decryptText(encryptedData, key) {
 
 function connectWebSocket() {
   try {
-    ws = new WebSocket("ws://localhost:8080");
+    ws = new WebSocket("ws://localhost:4000");
   } catch (error) {
     console.error("Failed to create WebSocket:", error);
     showError("Failed to create connection");
@@ -173,7 +174,7 @@ async function handleRoomCreated(roomId) {
 function handleDataStored(roomId) {
   // Generate the secure link with roomId and AES key
   const keyBase64 = arrayBufferToBase64(currentAESKey);
-  const secureLink = `https://myapp.com/#${roomId}:${keyBase64}`;
+  const secureLink = `http://localhost:4000/#${roomId}:${keyBase64}`;
 
   // Display the result
   elements.secureLink.value = secureLink;
@@ -197,6 +198,25 @@ function copyToClipboard(text) {
     .catch(() => {
       showError("Failed to copy link");
     });
+}
+
+function openLinkInNewWindow(url) {
+  chrome.windows.create(
+    {
+      url: url,
+      type: "popup",
+      width: 800,
+      height: 600,
+      focused: true,
+    },
+    (window) => {
+      if (chrome.runtime.lastError) {
+        showError("Failed to open link in new window");
+      } else {
+        showSuccess("Link opened in new window!");
+      }
+    }
+  );
 }
 
 function resetForm() {
@@ -242,6 +262,9 @@ async function shareSecurely() {
 elements.shareSecurely.addEventListener("click", shareSecurely);
 elements.copyLink.addEventListener("click", () => {
   copyToClipboard(elements.secureLink.value);
+});
+elements.openLink.addEventListener("click", () => {
+  openLinkInNewWindow(elements.secureLink.value);
 });
 elements.shareAgain.addEventListener("click", resetForm);
 
