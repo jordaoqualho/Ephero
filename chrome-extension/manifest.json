@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Ephero  - Secure Sharing",
+  "name": "Ephero - Secure Sharing",
   "version": "1.0.0",
   "description": "Secure ephemeral data sharing via WebSocket channels",
   "permissions": ["storage", "notifications", "activeTab"],

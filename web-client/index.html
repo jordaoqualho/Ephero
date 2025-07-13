@@ -204,7 +204,6 @@
       let roomId = null;
       let aesKey = null;
 
-      // Parse URL hash for roomId and key
       function parseURL() {
         const hash = window.location.hash.substring(1);
         if (!hash) {
@@ -230,7 +229,6 @@
         }
       }
 
-      // Convert base64 string to ArrayBuffer
       function base64ToArrayBuffer(base64) {
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
@@ -240,7 +238,6 @@
         return bytes.buffer;
       }
 
-      // Decrypt text with AES-GCM
       async function decryptText(encryptedData, key) {
         const combined = base64ToArrayBuffer(encryptedData);
         const iv = combined.slice(0, 12);
@@ -293,7 +290,6 @@
         }
 
         ws.onopen = () => {
-          // Send join-room message
           const message = {
             type: "join-room",
             roomId: roomId,
@@ -346,7 +342,6 @@
           });
       }
 
-      // Initialize
       document.addEventListener("DOMContentLoaded", () => {
         if (parseURL()) {
           showLoading();
