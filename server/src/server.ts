@@ -1,4 +1,6 @@
+import * as fs from "fs";
 import { createServer, IncomingMessage, ServerResponse } from "http";
+import * as path from "path";
 import { WebSocket, WebSocketServer } from "ws";
 import { ClientService } from "./services/ClientService";
 import { MessageHandler } from "./services/MessageHandler";
@@ -13,7 +15,7 @@ export class EpheroServer implements IEpheroServer {
   public clientService: ClientService;
   public messageHandler: MessageHandler;
 
-  constructor(port: number = 3000, defaultTTL: number = 5 * 60 * 1000) {
+  constructor(port: number = 4000, defaultTTL: number = 5 * 60 * 1000) {
     this.port = port;
     this.wss = null;
     this.httpServer = null;
@@ -28,6 +30,17 @@ export class EpheroServer implements IEpheroServer {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ status: "ok", timestamp: new Date().toISOString() }));
         return;
+      }
+
+      // Serve the web client
+      if (req.url === "/" || req.url === "/index.html") {
+        const webClientPath = path.join(__dirname, "../../web-client/index.html");
+        if (fs.existsSync(webClientPath)) {
+          const content = fs.readFileSync(webClientPath, "utf8");
+          res.writeHead(200, { "Content-Type": "text/html" });
+          res.end(content);
+          return;
+        }
       }
 
       res.writeHead(404, { "Content-Type": "text/plain" });
@@ -45,12 +58,12 @@ export class EpheroServer implements IEpheroServer {
       if (path.startsWith("/join/")) {
         const roomId = path.split("/")[2];
         if (roomId) {
-          this.messageHandler.handleJoinRoom(client, { type: "join_room", roomId });
+          this.messageHandler.handleJoinRoomSecure(client, { type: "join-room", roomId });
         } else {
           client.send({ type: "error", error: "Invalid room ID" });
         }
       } else if (path === "/create") {
-        this.messageHandler.handleCreateRoom(client);
+        this.messageHandler.handleCreateRoomSecure(client);
       } else {
         this.clientService.sendWelcomeMessage(client);
       }

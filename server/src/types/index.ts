@@ -25,6 +25,7 @@ export interface IRoom {
   lastActivity: number;
   maxClients: number;
   ttl: number;
+  data?: string; // Store encrypted data
   addClient(client: IClient): boolean;
   removeClient(client: IClient): boolean;
   updateActivity(): void;
@@ -33,6 +34,8 @@ export interface IRoom {
   broadcast(message: MessageType, excludeClient?: IClient | null): void;
   destroy(): void;
   getTimeUntilExpiration(): number;
+  setData(data: string): void;
+  getData(): string | undefined;
 }
 
 export interface IRoomService {
@@ -94,6 +97,7 @@ export interface IMessageData {
   type: string;
   roomId?: string;
   message?: string;
+  payload?: string; // For encrypted data
 }
 
 export interface IWelcomeMessage {
@@ -146,6 +150,23 @@ export interface IErrorMessage {
   error: string;
 }
 
+// New message types for secure sharing
+export interface IRoomCreatedSecureMessage {
+  type: "room-created";
+  roomId: string;
+}
+
+export interface IDataStoredMessage {
+  type: "data-stored";
+  roomId: string;
+}
+
+export interface IDataRetrievedMessage {
+  type: "data-retrieved";
+  roomId: string;
+  payload: string;
+}
+
 export type MessageType =
   | IWelcomeMessage
   | IRoomCreatedMessage
@@ -155,4 +176,7 @@ export type MessageType =
   | IUserLeftMessage
   | IMessageBroadcastMessage
   | IRoomsListMessage
-  | IErrorMessage;
+  | IErrorMessage
+  | IRoomCreatedSecureMessage
+  | IDataStoredMessage
+  | IDataRetrievedMessage;

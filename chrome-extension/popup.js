@@ -1,310 +1,292 @@
-let ws = null;
-let roomId = null;
-let isConnected = false;
-let ttlInterval = null;
-let timeLeft = 300;
-
-const elements = {
-  message: document.getElementById("message"),
-  sendMessage: document.getElementById("sendMessage"),
-  createRoom: document.getElementById("createRoom"),
-  joinRoom: document.getElementById("joinRoom"),
-  roomActions: document.getElementById("roomActions"),
-  roomSection: document.getElementById("roomSection"),
-  roomId: document.getElementById("roomId"),
-  copyRoomId: document.getElementById("copyRoomId"),
-  ttlTimer: document.getElementById("ttlTimer"),
-  timer: document.getElementById("timer"),
-  status: document.getElementById("status"),
-  leaveRoom: document.getElementById("leaveRoom"),
-  messagesSection: document.getElementById("messagesSection"),
-  messages: document.getElementById("messages"),
-  clearMessages: document.getElementById("clearMessages"),
-  inputSection: document.getElementById("inputSection"),
-  connectionInfo: document.getElementById("connectionInfo"),
-};
-
-function updateStatus(status, className = "") {
-  elements.status.textContent = status;
-  elements.status.className = className;
-}
-
-function updateConnectionInfo(info) {
-  elements.connectionInfo.textContent = info;
-}
-
-function showError(message) {
-  const errorDiv = document.createElement("div");
-  errorDiv.className = "error";
-  errorDiv.textContent = message;
-  document.querySelector(".container").insertBefore(errorDiv, document.querySelector("main"));
-  setTimeout(() => errorDiv.remove(), 5000);
-}
-
-function showSuccess(message) {
-  const successDiv = document.createElement("div");
-  successDiv.className = "success";
-  successDiv.textContent = message;
-  document.querySelector(".container").insertBefore(successDiv, document.querySelector("main"));
-  setTimeout(() => successDiv.remove(), 3000);
-}
-
-function updateSendButton() {
-  const hasMessage = elements.message.value.trim().length > 0;
-  const canSend = hasMessage && isConnected;
-  elements.sendMessage.disabled = !canSend;
-}
-
-function addMessage(content, type = "received", timestamp = new Date()) {
-  const messageDiv = document.createElement("div");
-  messageDiv.className = `message ${type}`;
-
-  const contentDiv = document.createElement("div");
-  contentDiv.className = "message-content";
-  contentDiv.textContent = content;
-
-  const timeDiv = document.createElement("div");
-  timeDiv.className = "message-time";
-  timeDiv.textContent = timestamp.toLocaleTimeString();
-
-  messageDiv.appendChild(contentDiv);
-  messageDiv.appendChild(timeDiv);
-
-  elements.messages.appendChild(messageDiv);
-  elements.messages.scrollTop = elements.messages.scrollHeight;
-}
-
-function clearMessages() {
-  elements.messages.innerHTML = "";
-}
-
-function updateTimer() {
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-  elements.timer.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-
-  if (timeLeft <= 0) {
-    clearInterval(ttlInterval);
-    leaveRoom();
-    showError("Room has expired");
-  }
-}
-
-function startTimer() {
-  timeLeft = 300;
-  updateTimer();
-  elements.ttlTimer.style.display = "flex";
-  ttlInterval = setInterval(() => {
-    timeLeft--;
-    updateTimer();
-  }, 1000);
-}
-
-function stopTimer() {
-  if (ttlInterval) {
-    clearInterval(ttlInterval);
-    ttlInterval = null;
-  }
-  elements.ttlTimer.style.display = "none";
-}
-
-function showRoomInterface() {
-  elements.roomSection.style.display = "block";
-  elements.messagesSection.style.display = "flex";
-  elements.inputSection.style.display = "block";
-  elements.roomActions.style.display = "none";
-}
-
-function hideRoomInterface() {
-  elements.roomSection.style.display = "none";
-  elements.messagesSection.style.display = "none";
-  elements.inputSection.style.display = "none";
-  elements.roomActions.style.display = "flex";
-}
-
-function connectWebSocket(roomIdToJoin = null) {
-  const wsUrl = roomIdToJoin ? `ws://localhost:3000/join/${roomIdToJoin}` : "ws://localhost:3000/create";
-
-  try {
-    ws = new WebSocket(wsUrl);
-  } catch (error) {
-    console.error("Failed to create WebSocket:", error);
-    showError("Failed to create connection");
-    return;
+class EpheroApp {
+  constructor() {
+    this.ws = null;
+    this.isConnected = false;
+    this.currentAESKey = null;
+    this.elements = this.initializeElements();
+    this.initializeEventListeners();
+    this.initializeUI();
   }
 
-  updateStatus("Connecting...", "connecting");
-  updateConnectionInfo("Establishing connection...");
+  initializeElements() {
+    return {
+      sensitiveText: document.getElementById("sensitiveText"),
+      shareSecurely: document.getElementById("shareSecurely"),
+      shareSection: document.getElementById("shareSection"),
+      resultSection: document.getElementById("resultSection"),
+      secureLink: document.getElementById("secureLink"),
+      copyLink: document.getElementById("copyLink"),
+      openLink: document.getElementById("openLink"),
+      shareAgain: document.getElementById("shareAgain"),
+      status: document.getElementById("status"),
+      connectionInfo: document.getElementById("connectionInfo"),
+      toast: document.getElementById("toast"),
+      toastMessage: document.getElementById("toastMessage"),
+    };
+  }
 
-  ws.onopen = () => {
-    isConnected = true;
-    updateStatus("Connected", "connected");
-    updateSendButton();
-    updateConnectionInfo("Connected to room");
-    showSuccess("Connected to room successfully");
+  initializeEventListeners() {
+    this.elements.shareSecurely.addEventListener("click", () => this.handleShareSecurely());
+    this.elements.copyLink.addEventListener("click", () => this.handleCopyLink());
+    this.elements.openLink.addEventListener("click", () => this.handleOpenLink());
+    this.elements.shareAgain.addEventListener("click", () => this.handleShareAgain());
 
-    // Notify service worker about connection
-    chrome.runtime.sendMessage({
-      type: "WEBSOCKET_CONNECTED",
-      roomId: roomIdToJoin,
-    });
-  };
+    chrome.runtime.onMessage.addListener((message) => this.handleBackgroundMessage(message));
+  }
 
-  ws.onmessage = (event) => {
+  initializeUI() {
+    this.updateStatus("Ready", "bg-gray-700 text-gray-300");
+    this.updateConnectionInfo("Enter text to share securely");
+  }
+
+  updateStatus(status, className) {
+    this.elements.status.textContent = status;
+    this.elements.status.className = `text-xs font-medium px-3 py-1 rounded-full ${className}`;
+  }
+
+  updateConnectionInfo(info) {
+    this.elements.connectionInfo.textContent = info;
+  }
+
+  showToast(message, type = "info") {
+    const toast = this.elements.toast;
+    const toastMessage = this.elements.toastMessage;
+
+    toastMessage.textContent = message;
+    toast.classList.remove("bg-gray-800", "bg-green-600", "bg-red-600");
+
+    const typeClasses = {
+      success: "bg-green-600",
+      error: "bg-red-600",
+      info: "bg-gray-800",
+    };
+
+    toast.classList.add(typeClasses[type] || typeClasses.info);
+    toast.classList.remove("opacity-0", "translate-y-2", "pointer-events-none");
+    toast.classList.add("opacity-100", "translate-y-0");
+
+    setTimeout(() => {
+      toast.classList.remove("opacity-100", "translate-y-0");
+      toast.classList.add("opacity-0", "translate-y-2", "pointer-events-none");
+    }, 2000);
+  }
+
+  generateAESKey() {
+    return crypto.getRandomValues(new Uint8Array(32));
+  }
+
+  arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+
+  base64ToArrayBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+
+  async encryptText(text, key) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "AES-GCM" }, false, ["encrypt"]);
+    const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, cryptoKey, data);
+    const combined = new Uint8Array(iv.length + encrypted.byteLength);
+    combined.set(iv);
+    combined.set(new Uint8Array(encrypted), iv.length);
+    return this.arrayBufferToBase64(combined);
+  }
+
+  connectWebSocket() {
+    try {
+      this.ws = new WebSocket("ws://localhost:4000");
+      this.setupWebSocketHandlers();
+    } catch (error) {
+      console.error("Failed to create WebSocket:", error);
+      this.showToast("Failed to create connection", "error");
+    }
+  }
+
+  setupWebSocketHandlers() {
+    this.ws.onopen = () => this.handleWebSocketOpen();
+    this.ws.onmessage = (event) => this.handleWebSocketMessage(event);
+    this.ws.onclose = () => this.handleWebSocketClose();
+    this.ws.onerror = (error) => this.handleWebSocketError(error);
+  }
+
+  handleWebSocketOpen() {
+    this.isConnected = true;
+    this.updateStatus("Connected", "bg-green-600 text-green-100");
+    this.updateConnectionInfo("Connected to server");
+    this.sendBackgroundMessage({ type: "WEBSOCKET_CONNECTED" });
+  }
+
+  handleWebSocketMessage(event) {
     try {
       const data = JSON.parse(event.data);
-
-      if (data.type === "room_created") {
-        roomId = data.roomId;
-        elements.roomId.textContent = roomId;
-        showRoomInterface();
-        startTimer();
-        showSuccess("Room created successfully");
-        updateConnectionInfo(`Room: ${roomId}`);
-
-        // Store room info in service worker
-        chrome.runtime.sendMessage({
-          type: "ROOM_CREATED",
-          roomId: roomId,
-        });
-      } else if (data.type === "room_joined") {
-        roomId = data.roomId;
-        elements.roomId.textContent = roomId;
-        showRoomInterface();
-        startTimer();
-        showSuccess("Joined room successfully");
-        updateConnectionInfo(`Room: ${roomId}`);
-
-        // Store room info in service worker
-        chrome.runtime.sendMessage({
-          type: "ROOM_JOINED",
-          roomId: roomId,
-        });
-      } else if (data.type === "message") {
-        addMessage(data.content, "received");
-      } else if (data.type === "error") {
-        showError(data.message);
-      }
+      this.handleServerMessage(data);
     } catch (error) {
       console.error("Error parsing message:", error);
+      this.showToast("Invalid server response", "error");
     }
-  };
+  }
 
-  ws.onclose = () => {
-    isConnected = false;
-    updateStatus("Disconnected");
-    updateSendButton();
-    stopTimer();
-    updateConnectionInfo("Connection lost");
+  handleWebSocketClose() {
+    this.isConnected = false;
+    this.updateStatus("Disconnected", "bg-gray-700 text-gray-300");
+    this.updateConnectionInfo("Connection lost");
+    this.sendBackgroundMessage({ type: "WEBSOCKET_DISCONNECTED" });
+  }
 
-    // Notify service worker about disconnection
-    chrome.runtime.sendMessage({
-      type: "WEBSOCKET_DISCONNECTED",
-    });
-  };
-
-  ws.onerror = (error) => {
+  handleWebSocketError(error) {
     console.error("WebSocket error:", error);
-    showError("Connection failed - check if server is running");
-    updateStatus("Error");
-    isConnected = false;
-    updateSendButton();
-    updateConnectionInfo("Connection failed");
-  };
-}
-
-function disconnectWebSocket() {
-  if (ws) {
-    ws.close();
-    ws = null;
+    this.showToast("Connection failed - check if server is running", "error");
+    this.updateStatus("Error", "bg-red-600 text-red-100");
+    this.isConnected = false;
+    this.updateConnectionInfo("Connection failed");
   }
-  isConnected = false;
-  updateStatus("Disconnected");
-  updateSendButton();
-}
 
-function leaveRoom() {
-  disconnectWebSocket();
-  stopTimer();
-  roomId = null;
-  hideRoomInterface();
-  clearMessages();
-  elements.message.value = "";
-  updateSendButton();
-  updateConnectionInfo("Click Create Room or Join Room to start");
+  handleServerMessage(data) {
+    const handlers = {
+      "room-created": (roomId) => this.handleRoomCreated(roomId),
+      "data-stored": (roomId) => this.handleDataStored(roomId),
+      error: (message) => this.showToast(message || "Server error", "error"),
+    };
 
-  // Notify service worker about leaving room
-  chrome.runtime.sendMessage({
-    type: "ROOM_LEFT",
-  });
-}
-
-function sendMessage() {
-  const message = elements.message.value.trim();
-  if (!message || !isConnected) return;
-
-  const messageData = {
-    type: "message",
-    content: message,
-  };
-
-  ws.send(JSON.stringify(messageData));
-  addMessage(message, "sent");
-  elements.message.value = "";
-  updateSendButton();
-}
-
-function copyRoomId() {
-  navigator.clipboard
-    .writeText(roomId)
-    .then(() => {
-      showSuccess("Room ID copied to clipboard");
-    })
-    .catch(() => {
-      showError("Failed to copy room ID");
-    });
-}
-
-// Event listeners
-elements.message.addEventListener("input", updateSendButton);
-elements.sendMessage.addEventListener("click", sendMessage);
-elements.message.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
+    const handler = handlers[data.type];
+    if (handler) {
+      handler(data.roomId || data.message);
+    }
   }
-});
 
-elements.createRoom.addEventListener("click", () => {
-  connectWebSocket();
-});
+  async handleRoomCreated(roomId) {
+    const text = this.elements.sensitiveText.value.trim();
+    if (!text) {
+      this.showToast("Please enter some text to share", "error");
+      return;
+    }
 
-elements.joinRoom.addEventListener("click", () => {
-  const roomIdToJoin = prompt("Enter room ID:");
-  if (roomIdToJoin && roomIdToJoin.trim()) {
-    connectWebSocket(roomIdToJoin.trim());
+    this.currentAESKey = this.generateAESKey();
+    const encryptedText = await this.encryptText(text, this.currentAESKey);
+
+    const message = {
+      type: "send-data",
+      roomId: roomId,
+      payload: encryptedText,
+    };
+
+    this.ws.send(JSON.stringify(message));
+    this.sendBackgroundMessage({ type: "ROOM_CREATED", roomId: roomId });
   }
-});
 
-elements.copyRoomId.addEventListener("click", copyRoomId);
-elements.leaveRoom.addEventListener("click", leaveRoom);
-elements.clearMessages.addEventListener("click", clearMessages);
+  handleDataStored(roomId) {
+    const keyBase64 = this.arrayBufferToBase64(this.currentAESKey);
+    const secureLink = `http://localhost:4000/#${roomId}:${keyBase64}`;
 
-// Listen for messages from service worker
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "NEW_MESSAGE") {
-    addMessage(message.content, "received", new Date(message.timestamp));
-  } else if (message.type === "ROOM_EXPIRED") {
-    leaveRoom();
-    showError("Room has expired");
-  } else if (message.type === "PENDING_MESSAGES") {
-    // Add pending messages when popup opens
-    message.messages.forEach((msg) => {
-      addMessage(msg.content, "received", new Date(msg.timestamp));
-    });
+    this.elements.secureLink.value = secureLink;
+    this.elements.shareSection.classList.add("hidden");
+    this.elements.resultSection.classList.remove("hidden");
+
+    this.copyToClipboard(secureLink);
+    this.updateStatus("Success", "bg-green-600 text-green-100");
+    this.updateConnectionInfo("Secure link generated and copied to clipboard");
+    this.showToast("Link copied!", "success");
   }
-});
 
-// Initialize
-updateSendButton();
-updateConnectionInfo("Click Create Room or Join Room to start");
+  copyToClipboard(text) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => this.showToast("Link copied!", "success"))
+      .catch(() => this.showToast("Failed to copy link", "error"));
+  }
+
+  openLinkInNewWindow(url) {
+    chrome.windows.create(
+      {
+        url: url,
+        type: "popup",
+        width: 800,
+        height: 600,
+        focused: true,
+      },
+      (window) => {
+        if (chrome.runtime.lastError) {
+          this.showToast("Failed to open link in new window", "error");
+        } else {
+          this.showToast("Link opened in new window!", "success");
+        }
+      }
+    );
+  }
+
+  resetForm() {
+    this.elements.sensitiveText.value = "";
+    this.elements.shareSection.classList.remove("hidden");
+    this.elements.resultSection.classList.add("hidden");
+    this.updateStatus("Ready", "bg-gray-700 text-gray-300");
+    this.updateConnectionInfo("Enter text to share securely");
+    this.sendBackgroundMessage({ type: "ROOM_LEFT" });
+  }
+
+  async handleShareSecurely() {
+    const text = this.elements.sensitiveText.value.trim();
+    if (!text) {
+      this.showToast("Please enter some text to share", "error");
+      return;
+    }
+
+    if (!this.isConnected) {
+      this.connectWebSocket();
+      setTimeout(() => {
+        if (this.isConnected) {
+          this.handleShareSecurely();
+        } else {
+          this.showToast("Failed to connect to server", "error");
+        }
+      }, 1000);
+      return;
+    }
+
+    this.updateStatus("Creating secure room...", "bg-yellow-600 text-yellow-100");
+    this.updateConnectionInfo("Creating secure room...");
+
+    const message = { type: "create-room" };
+    this.ws.send(JSON.stringify(message));
+  }
+
+  handleCopyLink() {
+    this.copyToClipboard(this.elements.secureLink.value);
+  }
+
+  handleOpenLink() {
+    this.openLinkInNewWindow(this.elements.secureLink.value);
+  }
+
+  handleShareAgain() {
+    this.resetForm();
+  }
+
+  handleBackgroundMessage(message) {
+    if (message.type === "PENDING_MESSAGES") {
+      console.log("Received pending messages:", message.messages);
+    }
+  }
+
+  sendBackgroundMessage(message) {
+    try {
+      chrome.runtime.sendMessage(message);
+    } catch (error) {
+      console.error("Failed to send message to background:", error);
+    }
+  }
+}
+
+new EpheroApp();
