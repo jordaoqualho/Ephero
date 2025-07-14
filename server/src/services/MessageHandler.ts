@@ -1,5 +1,7 @@
 import { IClient, IClientService, IMessageData, IMessageHandler, IRoomService } from "../types";
 import { MESSAGE_TYPES } from "../utils/messageTypes";
+import { AuditLogger } from "./AuditLogger";
+import { MonitoringService } from "./MonitoringService";
 
 export class MessageHandler implements IMessageHandler {
   public roomService: IRoomService;
@@ -17,7 +19,7 @@ export class MessageHandler implements IMessageHandler {
       [MESSAGE_TYPES.LEAVE_ROOM]: (client) => this.handleLeaveRoom(client),
       [MESSAGE_TYPES.GET_ROOMS]: (client) => this.handleGetRooms(client),
       [MESSAGE_TYPES.MESSAGE]: (client, data) => this.handleBroadcastMessage(client, data),
-      // New handlers for secure sharing
+
       [MESSAGE_TYPES.CREATE_ROOM_SECURE]: (client) => this.handleCreateRoomSecure(client),
       [MESSAGE_TYPES.SEND_DATA]: (client, data) => this.handleSendData(client, data),
       [MESSAGE_TYPES.JOIN_ROOM_SECURE]: (client, data) => this.handleJoinRoomSecure(client, data),
@@ -35,10 +37,13 @@ export class MessageHandler implements IMessageHandler {
   }
 
   handleCreateRoomSecure(client: IClient): void {
+    const startTime = Date.now();
     const room = this.roomService.createRoom();
     const result = this.roomService.addClientToRoom(room.id, client);
 
     if (result.success) {
+      const clientIp = client.ws.url ? new URL(client.ws.url).hostname : "unknown";
+      AuditLogger.logRoomCreation(client.id, room.id, clientIp);
       client.send({
         type: "room-created",
         roomId: room.id,
@@ -49,9 +54,13 @@ export class MessageHandler implements IMessageHandler {
         error: result.error || "Failed to create room",
       });
     }
+
+    MonitoringService.logPerformance("room_creation", Date.now() - startTime);
   }
 
   handleSendData(client: IClient, data: IMessageData): void {
+    const startTime = Date.now();
+
     if (!data.roomId) {
       client.send({
         type: "error",
@@ -80,10 +89,15 @@ export class MessageHandler implements IMessageHandler {
     // Store the encrypted data in the room
     room.setData(data.payload);
 
+    const clientIp = client.ws.url ? new URL(client.ws.url).hostname : "unknown";
+    AuditLogger.logDataSharing(client.id, data.roomId, clientIp, data.payload.length);
+
     client.send({
       type: "data-stored",
       roomId: data.roomId,
     });
+
+    MonitoringService.logPerformance("data_storage", Date.now() - startTime);
   }
 
   handleJoinRoomSecure(client: IClient, data: IMessageData): void {
