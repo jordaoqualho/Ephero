@@ -33,6 +33,7 @@ secure-share/
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) installed
+- [pnpm](https://pnpm.io/) installed (`npm install -g pnpm`)
 - [Docker](https://docker.com/) (optional, for containerized development)
 
 ### Installation
@@ -41,13 +42,13 @@ secure-share/
 
 ```bash
 # Install all dependencies
-npm run install:all
+pnpm install
 
 # Start the WebSocket server
-npm run dev:server
+pnpm run dev:server
 
 # Start the web client (in another terminal)
-npm run dev:web
+pnpm run dev:web
 ```
 
 #### Option 2: Docker Development
@@ -59,16 +60,16 @@ docker-compose up
 
 ### Development Scripts
 
-#### NPM Scripts
+#### PNPM Scripts
 
-- `npm run dev` - Start the WebSocket server
-- `npm run dev:server` - Start only the server
-- `npm run dev:web` - Start only the web client
-- `npm run dev:extension` - Start only the Chrome extension
-- `npm run dev:all` - Start all services simultaneously
-- `npm run build` - Build all projects
-- `npm run test` - Run tests for all projects
-- `npm run install:all` - Install dependencies for all projects
+- `pnpm run dev` - Start the WebSocket server
+- `pnpm run dev:server` - Start only the server
+- `pnpm run dev:web` - Start only the web client
+- `pnpm run dev:extension` - Start only the Chrome extension
+- `pnpm run dev:all` - Start all services simultaneously
+- `pnpm run build` - Build all projects
+- `pnpm run test` - Run tests for all projects
+- `pnpm install` - Install dependencies for all projects
 
 #### Bash Scripts
 
@@ -82,11 +83,11 @@ docker-compose up
 
 ### Server (`/server`)
 
-WebSocket server running on port 8080.
+WebSocket server running on port 4000.
 
 ```bash
 cd server
-npm run start:dev
+pnpm run start:dev
 ```
 
 ### Web Client (`/web-client`)
@@ -95,7 +96,7 @@ HTML+JS client for users without the Chrome extension.
 
 ```bash
 cd web-client
-npm run dev
+pnpm run dev
 ```
 
 ### Chrome Extension (`/chrome-extension`)
@@ -111,7 +112,7 @@ cd chrome-extension
 
 ### WebSocket Server
 
-- **URL**: `ws://localhost:8080`
+- **URL**: `ws://localhost:4000`
 - **Protocol**: WebSocket
 - **Features**: Real-time messaging, ephemeral data sharing
 
