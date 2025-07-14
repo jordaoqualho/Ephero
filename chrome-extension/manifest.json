@@ -4,7 +4,12 @@
   "version": "1.0.0",
   "description": "Secure ephemeral data sharing via WebSocket channels",
   "permissions": ["storage", "notifications", "activeTab"],
-  "host_permissions": ["ws://localhost:4000/*", "http://localhost:4000/*"],
+  "host_permissions": [
+    "ws://localhost:4000/*",
+    "http://localhost:4000/*",
+    "wss://api.ephero.com/*",
+    "https://api.ephero.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -31,6 +36,9 @@
       "run_at": "document_end"
     }
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "commands": {
     "_execute_action": {
       "suggested_key": {
