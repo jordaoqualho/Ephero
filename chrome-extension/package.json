@@ -1,0 +1,18 @@
+{
+  "name": "chrome-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for Ephero secure sharing",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Chrome extension is static - load in browser'",
+    "build": "echo 'Chrome extension is static - no build needed'",
+    "test": "echo 'No tests configured for chrome extension'"
+  },
+  "keywords": [
+    "chrome",
+    "extension",
+    "browser"
+  ],
+  "author": "Ephero Team",
+  "license": "MIT"
+}

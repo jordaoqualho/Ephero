@@ -1,5 +1,5 @@
 {
-  "name": "ephero-server",
+  "name": "server",
   "version": "1.0.0",
   "description": "Ephemeral WebSocket server for real-time communication",
   "main": "dist/index.js",
