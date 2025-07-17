@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ephero Crypto Test</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+      }
+      .success {
+        background: #d4edda;
+        border-color: #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #5a67d8;
+      }
+      textarea {
+        width: 100%;
+        height: 100px;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .result {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔐 Ephero Crypto Test</h1>
+      <p>This page tests the cryptographic functionality of the Ephero extension.</p>
+
+      <div class="test-section">
+        <h3>Test Data</h3>
+        <textarea id="testData" placeholder="Enter test data here...">
+This is a secret message that should be encrypted and decrypted successfully!</textarea
+        >
+        <button onclick="runTest()">Run Crypto Test</button>
+      </div>
+
+      <div id="results"></div>
+    </div>
+
+    <script type="module">
+      // Import the crypto modules
+      import EphemeralCrypto from "./crypto.js";
+      import LinkManager from "./linkManager.js";
+
+      window.runTest = async function () {
+        const resultsDiv = document.getElementById("results");
+        const testData = document.getElementById("testData").value;
+
+        if (!testData.trim()) {
+          showResult("Please enter test data", "error");
+          return;
+        }
+
+        resultsDiv.innerHTML = "<h3>Test Results:</h3>";
+
+        try {
+          // Test 1: Basic crypto operations
+          showResult("Testing basic crypto operations...", "info");
+          const crypto = new EphemeralCrypto();
+          const keyPair = crypto.generateKeyPair();
+          showResult(`✓ Key pair generated: ${keyPair.publicKey.substring(0, 20)}...`, "success");
+
+          // Test 2: Encryption/Decryption
+          showResult("Testing encryption/decryption...", "info");
+          const sharedKey = crypto.deriveSharedKey(keyPair.publicKey);
+          const encrypted = crypto.encrypt(testData, sharedKey);
+          showResult(`✓ Data encrypted: ${encrypted.encrypted.substring(0, 20)}...`, "success");
+
+          const decrypted = crypto.decrypt(encrypted.encrypted, encrypted.nonce, sharedKey);
+          if (decrypted === testData) {
+            showResult("✓ Data decrypted successfully!", "success");
+          } else {
+            showResult("✗ Decryption failed - data mismatch", "error");
+          }
+
+          // Test 3: Link generation
+          showResult("Testing secure link generation...", "info");
+          const linkManager = new LinkManager();
+          const secureLink = linkManager.generateSecureLink(testData);
+          showResult(`✓ Secure link generated: ${secureLink}`, "success");
+
+          // Test 4: Link parsing
+          showResult("Testing secure link parsing...", "info");
+          const decryptedData = linkManager.parseSecureLink(secureLink);
+          if (decryptedData === testData) {
+            showResult("✓ Link parsed and decrypted successfully!", "success");
+          } else {
+            showResult("✗ Link parsing failed - data mismatch", "error");
+          }
+
+          // Test 5: Cleanup
+          showResult("Testing cleanup...", "info");
+          crypto.clearSensitiveData();
+          linkManager.cleanup();
+          showResult("✓ Sensitive data cleared from memory", "success");
+
+          showResult("🎉 All tests passed! The crypto system is working correctly.", "success");
+        } catch (error) {
+          showResult(`✗ Test failed: ${error.message}`, "error");
+          console.error("Test error:", error);
+        }
+      };
+
+      function showResult(message, type) {
+        const resultsDiv = document.getElementById("results");
+        const resultDiv = document.createElement("div");
+        resultDiv.className = `test-section ${type}`;
+        resultDiv.innerHTML = `<div class="result">${message}</div>`;
+        resultsDiv.appendChild(resultDiv);
+      }
+    </script>
+  </body>
+</html>

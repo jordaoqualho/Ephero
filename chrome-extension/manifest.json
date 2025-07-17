@@ -2,14 +2,8 @@
   "manifest_version": 3,
   "name": "Ephero - Secure Sharing",
   "version": "1.0.0",
-  "description": "Secure ephemeral data sharing via WebSocket channels",
-  "permissions": ["storage", "notifications", "activeTab"],
-  "host_permissions": [
-    "ws://localhost:4000/*",
-    "http://localhost:4000/*",
-    "wss://api.ephero.com/*",
-    "https://api.ephero.com/*"
-  ],
+  "description": "Secure ephemeral data sharing with client-side encryption",
+  "permissions": ["storage", "notifications", "activeTab", "clipboardWrite"],
   "background": {
     "service_worker": "background.js"
   },
@@ -36,8 +30,14 @@
       "run_at": "document_end"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["viewer.html", "crypto.js", "linkManager.js", "test.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
   "commands": {
     "_execute_action": {

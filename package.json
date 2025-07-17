@@ -1,36 +1,24 @@
 {
   "name": "ephero-monorepo",
   "version": "1.0.0",
-  "description": "🔐 Secure ephemeral sharing tool - Monorepo containing server, chrome extension, and web client",
+  "description": "🔐 Secure ephemeral sharing tool - Client-side encryption without server communication",
   "private": true,
   "workspaces": [
-    "server",
-    "chrome-extension",
-    "web-client"
+    "chrome-extension"
   ],
   "scripts": {
-    "dev": "pnpm --filter server run start:dev",
-    "dev:server": "pnpm --filter server run start:dev",
-    "dev:web": "pnpm --filter web-client run dev",
     "dev:extension": "pnpm --filter chrome-extension run dev",
-    "dev:all": "pnpm --parallel --filter server --filter web-client --filter chrome-extension run dev",
-    "build": "pnpm --parallel --filter server --filter web-client --filter chrome-extension run build",
-    "build:server": "pnpm --filter server run build",
-    "build:web": "pnpm --filter web-client run build",
     "build:extension": "pnpm --filter chrome-extension run build",
     "install:all": "pnpm install",
-    "test": "pnpm --parallel --filter server --filter web-client --filter chrome-extension run test",
-    "test:server": "pnpm --filter server test",
-    "test:web": "pnpm --filter web-client test",
     "test:extension": "pnpm --filter chrome-extension test",
-    "start": "pnpm run dev:all"
+    "start": "pnpm run dev:extension"
   },
   "keywords": [
-    "websocket",
-    "webrtc",
     "secure-sharing",
     "ephemeral",
-    "chrome-extension"
+    "chrome-extension",
+    "client-side-encryption",
+    "tweetnacl"
   ],
   "author": "",
   "license": "MIT",

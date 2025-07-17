@@ -1,4 +1,2 @@
 packages:
-  - "server"
-  - "web-client"
   - "chrome-extension"

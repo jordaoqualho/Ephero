@@ -1,121 +1,151 @@
 # Ephero
 
-🔐 Ephero is a secure, ephemeral sharing tool for sensitive data (passwords, files, etc). No storage. Built with WebSocket + WebRTC.
+🔐 Ephero is a secure, ephemeral sharing tool for sensitive data using client-side encryption. No server required. Built with Chrome extension and tweetnacl.
 
-## Project Structure
+## Overview
 
-This is a monorepo containing:
-
-- **`server/`** - Node.js WebSocket server
-- **`chrome-extension/`** - Chrome browser extension
-- **`web-client/`** - HTML+JS client for users without the extension
-
-```
-secure-share/
-├── server/          # Node WebSocket server
-├── chrome-extension/ # Código da extensão
-├── web-client/      # Cliente HTML+JS para quem não usa extensão
-├── README.md
-├── LICENSE
-└── docker-compose.yml
-```
+Ephero provides secure, ephemeral data sharing without any server communication. All encryption and decryption happens locally using ephemeral keys, ensuring maximum privacy and security.
 
 ## Features
 
-- Secure, temporary sharing of sensitive information
-- No data is stored on the server
-- Real-time communication using WebSocket
-- Chrome extension for easy access
-- Web client for users without the extension
+- **Client-side encryption** - No server communication required
+- **Ephemeral keys** - Each share uses unique, temporary encryption keys
+- **Zero persistence** - No data is stored anywhere
+- **Chrome extension** - Easy-to-use browser integration
+- **Secure by design** - Uses tweetnacl for cryptographic operations
 
-## Getting Started
+## How It Works
+
+1. **Key Generation**: When sharing data, Ephero generates a new ephemeral key pair
+2. **Encryption**: The data is encrypted using the ephemeral public key
+3. **Link Creation**: A secure link is created containing the encrypted data and ephemeral public key
+4. **Sharing**: The link can be shared via any communication channel
+5. **Decryption**: Recipients can decrypt the data using the ephemeral key from the link
+6. **Cleanup**: All keys are immediately destroyed after use
+
+## Project Structure
+
+```
+ephero/
+├── chrome-extension/     # Chrome browser extension
+│   ├── crypto.js        # Cryptographic operations
+│   ├── linkManager.js   # Secure link generation/parsing
+│   ├── popup.js         # Extension popup interface
+│   ├── background.js    # Background service worker
+│   ├── content.js       # Content script for text selection
+│   ├── viewer.html      # Secure content viewer
+│   └── manifest.json    # Extension manifest
+├── README.md
+└── LICENSE
+```
+
+## Installation
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) installed
-- [pnpm](https://pnpm.io/) installed (`npm install -g pnpm`)
-- [Docker](https://docker.com/) (optional, for containerized development)
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- [pnpm](https://pnpm.io/) (`npm install -g pnpm`)
+- Chrome or Chromium-based browser
 
-### Installation
-
-#### Option 1: Local Development
+### Setup
 
 ```bash
-# Install all dependencies
+# Install dependencies
 pnpm install
 
-# Start the WebSocket server
-pnpm run dev:server
-
-# Start the web client (in another terminal)
-pnpm run dev:web
+# Build the extension
+pnpm run build:extension
 ```
 
-#### Option 2: Docker Development
+### Loading the Extension
 
-```bash
-# Start all services with Docker Compose
-docker-compose up
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" in the top right
+3. Click "Load unpacked" and select the `chrome-extension/` folder
+4. The Ephero extension should now appear in your extensions list
+
+## Usage
+
+### Sharing Sensitive Data
+
+1. Click the Ephero extension icon in your browser
+2. Enter the sensitive data you want to share
+3. Click "Share Securely"
+4. Copy the generated secure link
+5. Share the link with your intended recipient
+
+### Receiving Secure Data
+
+1. Click on an Ephero secure link
+2. The content will be automatically decrypted and displayed
+3. The data is ephemeral and will be destroyed after viewing
+
+### Keyboard Shortcuts
+
+- `Ctrl+Shift+S` (Windows/Linux) or `Cmd+Shift+S` (Mac) - Share selected text
+
+## Security Features
+
+- **Ephemeral Keys**: Each share uses unique, temporary encryption keys
+- **Client-side Only**: No server communication or data storage
+- **Zero Persistence**: All data exists only in memory
+- **Cryptographic Security**: Uses tweetnacl (NaCl) for encryption
+- **Automatic Cleanup**: Keys are destroyed immediately after use
+
+## Development
+
+### Scripts
+
+- `pnpm run dev:extension` - Development mode for the extension
+- `pnpm run build:extension` - Build the extension
+- `pnpm run test:extension` - Run tests
+
+### Architecture
+
+The extension is built with a modular architecture:
+
+- **`crypto.js`** - Handles all cryptographic operations using tweetnacl
+- **`linkManager.js`** - Manages secure link generation and parsing
+- **`popup.js`** - Main extension interface
+- **`background.js`** - Background service worker
+- **`content.js`** - Content script for webpage integration
+
+## Technical Details
+
+### Cryptographic Implementation
+
+- **Key Exchange**: X25519 for ephemeral key generation
+- **Encryption**: NaCl secretbox (XSalsa20-Poly1305)
+- **Key Derivation**: HKDF for shared key derivation
+- **Randomness**: Uses Web Crypto API for secure random generation
+
+### Link Format
+
+Secure links follow the format:
+
+```
+ephero://secure/{base64-encoded-json}
 ```
 
-### Development Scripts
+The JSON contains:
 
-#### PNPM Scripts
+- `ephemeralPublicKey`: The ephemeral public key used for encryption
+- `encryptedData`: The encrypted content
+- `nonce`: The encryption nonce
+- `timestamp`: Link creation timestamp
 
-- `pnpm run dev` - Start the WebSocket server
-- `pnpm run dev:server` - Start only the server
-- `pnpm run dev:web` - Start only the web client
-- `pnpm run dev:extension` - Start only the Chrome extension
-- `pnpm run dev:all` - Start all services simultaneously
-- `pnpm run build` - Build all projects
-- `pnpm run test` - Run tests for all projects
-- `pnpm install` - Install dependencies for all projects
+## Contributing
 
-#### Bash Scripts
-
-- `./scripts/dev-all.sh` - Start all services with colored output
-- `./scripts/dev-server.sh` - Start only the server
-- `./scripts/dev-web.sh` - Start only the web client
-- `./scripts/dev-extension.sh` - Start only the Chrome extension
-- `./scripts/install-all.sh` - Install all dependencies with helpful output
-
-## Individual Projects
-
-### Server (`/server`)
-
-WebSocket server running on port 4000.
-
-```bash
-cd server
-pnpm run start:dev
-```
-
-### Web Client (`/web-client`)
-
-HTML+JS client for users without the Chrome extension.
-
-```bash
-cd web-client
-pnpm run dev
-```
-
-### Chrome Extension (`/chrome-extension`)
-
-Browser extension for Chrome/Chromium-based browsers.
-
-```bash
-cd chrome-extension
-# Load the extension in Chrome's developer mode
-```
-
-## API Documentation
-
-### WebSocket Server
-
-- **URL**: `ws://localhost:4000`
-- **Protocol**: WebSocket
-- **Features**: Real-time messaging, ephemeral data sharing
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Security
+
+If you discover any security vulnerabilities, please report them privately to the maintainers.
