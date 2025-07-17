@@ -3,7 +3,8 @@
  * Secure ephemeral data sharing without server communication
  */
 
-import LinkManager from "./linkManager.js";
+// Use global LinkManager
+const LinkManager = window.LinkManager;
 
 class EpheroApp {
   constructor() {

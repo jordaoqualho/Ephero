@@ -3,7 +3,8 @@
  * Handles generation and parsing of secure ephemeral links
  */
 
-import EphemeralCrypto from "./crypto.js";
+// Use global EphemeralCrypto
+const EphemeralCrypto = window.EphemeralCrypto;
 
 class LinkManager {
   constructor() {
@@ -137,4 +138,5 @@ class LinkManager {
   }
 }
 
-export default LinkManager;
+// Make LinkManager available globally
+window.LinkManager = LinkManager;

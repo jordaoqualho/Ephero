@@ -3,8 +3,9 @@
  * Handles secure data sharing without server communication
  */
 
-import nacl from "tweetnacl";
-import naclUtil from "tweetnacl-util";
+// Use global variables for tweetnacl
+const nacl = window.nacl;
+const naclUtil = window.nacl.util;
 
 class EphemeralCrypto {
   constructor() {
@@ -189,4 +190,5 @@ class EphemeralCrypto {
   }
 }
 
-export default EphemeralCrypto;
+// Make EphemeralCrypto available globally
+window.EphemeralCrypto = EphemeralCrypto;

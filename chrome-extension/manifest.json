@@ -32,7 +32,14 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["viewer.html", "crypto.js", "linkManager.js", "test.html"],
+      "resources": [
+        "viewer.html",
+        "crypto.js",
+        "linkManager.js",
+        "test.html",
+        "tweetnacl.min.js",
+        "tweetnacl-util.min.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ],
