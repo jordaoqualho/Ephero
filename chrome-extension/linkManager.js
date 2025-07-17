@@ -84,7 +84,6 @@ if (typeof window.LinkManager === "undefined") {
       return (
         linkData &&
         typeof linkData === "object" &&
-        typeof linkData.ephemeralPublicKey === "string" &&
         typeof linkData.encryptedData === "string" &&
         typeof linkData.nonce === "string" &&
         typeof linkData.timestamp === "number"
