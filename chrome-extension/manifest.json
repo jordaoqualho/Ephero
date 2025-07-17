@@ -37,6 +37,7 @@
         "crypto.js",
         "linkManager.js",
         "test.html",
+        "simple-test.html",
         "tweetnacl.min.js",
         "tweetnacl-util.min.js"
       ],
