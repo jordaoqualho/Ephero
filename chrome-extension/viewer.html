@@ -74,28 +74,12 @@
         ⚠️ This content is ephemeral and will be destroyed after viewing. Do not refresh or navigate away from this
         page.
       </div>
-      <button class="button" onclick="window.close()">Close Window</button>
+      <button class="button" id="closeBtn">Close Window</button>
     </div>
-    <script>
-      // Extract and decrypt the secure link
-      const urlParams = new URLSearchParams(window.location.search);
-      const secureLink = urlParams.get("link");
-
-      try {
-        // Import the crypto module (simplified for demo)
-        const linkManager = {
-          parseSecureLink: function (link) {
-            // This would normally use the full crypto implementation
-            // For demo purposes, we'll show a placeholder
-            return "This is a secure ephemeral link. In a real implementation, this would decrypt the content using ephemeral keys.";
-          },
-        };
-
-        const decryptedContent = linkManager.parseSecureLink(secureLink);
-        document.getElementById("content").textContent = decryptedContent;
-      } catch (error) {
-        document.getElementById("content").textContent = "Error: " + error.message;
-      }
-    </script>
+    <script src="tweetnacl.min.js"></script>
+    <script src="tweetnacl-util.min.js"></script>
+    <script src="crypto.js"></script>
+    <script src="linkManager.js"></script>
+    <script src="viewer.js"></script>
   </body>
 </html>
