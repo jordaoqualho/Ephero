@@ -1,17 +1,10 @@
 {
-  "name": "ephero-monorepo",
+  "name": "ephero-chrome-extension",
   "version": "1.0.0",
-  "description": "🔐 Secure ephemeral sharing tool - Client-side encryption without server communication",
+  "description": "Ephero - Chrome extension for secure ephemeral sharing (client-side only)",
   "private": true,
-  "workspaces": [
-    "chrome-extension"
-  ],
   "scripts": {
-    "dev:extension": "pnpm --filter chrome-extension run dev",
-    "build:extension": "pnpm --filter chrome-extension run build",
-    "install:all": "pnpm install",
-    "test:extension": "pnpm --filter chrome-extension test",
-    "start": "pnpm run dev:extension"
+    "install:all": "pnpm install"
   },
   "keywords": [
     "secure-sharing",
@@ -20,17 +13,5 @@
     "client-side-encryption",
     "tweetnacl"
   ],
-  "author": "",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jordaoqualho/Ephero.git"
-  },
-  "bugs": {
-    "url": "https://github.com/jordaoqualho/Ephero/issues"
-  },
-  "homepage": "https://github.com/jordaoqualho/Ephero#readme",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  }
+  "license": "MIT"
 }
