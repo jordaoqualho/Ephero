@@ -1,121 +1,47 @@
-# Ephero
+# Ephero Chrome Extension
 
-🔐 Ephero is a secure, ephemeral sharing tool for sensitive data (passwords, files, etc). No storage. Built with WebSocket + WebRTC.
+Ephero is a Chrome extension for ephemeral and secure sharing of sensitive information, 100% client-side, with no server.
 
-## Project Structure
+## How it works
 
-This is a monorepo containing:
+- Data is encrypted locally with a random key.
+- A secure link is generated containing the encrypted data and the key (in base64).
+- Anyone with the link can decrypt and view the content only once.
+- No data is persisted or sent to any server.
 
-- **`server/`** - Node.js WebSocket server
-- **`chrome-extension/`** - Chrome browser extension
-- **`web-client/`** - HTML+JS client for users without the extension
+## Installation
 
-```
-secure-share/
-├── server/          # Node WebSocket server
-├── chrome-extension/ # Código da extensão
-├── web-client/      # Cliente HTML+JS para quem não usa extensão
-├── README.md
-├── LICENSE
-└── docker-compose.yml
-```
+1. Clone this repository.
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+3. Go to `chrome://extensions/` in Chrome, enable developer mode, and click "Load unpacked".
+4. Select the `chrome-extension` folder.
 
-## Features
+## Usage
 
-- Secure, temporary sharing of sensitive information
-- No data is stored on the server
-- Real-time communication using WebSocket
-- Chrome extension for easy access
-- Web client for users without the extension
+- Click the extension icon.
+- Enter your sensitive text.
+- Click "Share Securely".
+- The secure link will be generated and copied to your clipboard.
+- Share the link with anyone you want.
+- When the link is opened, the content will be displayed securely and ephemerally.
 
-## Getting Started
+## Main file structure
 
-### Prerequisites
+- `popup.html` / `popup.js`: Main extension interface.
+- `crypto.js`: Encryption and decryption logic.
+- `linkManager.js`: Secure link generation and parsing.
+- `viewer.html` / `viewer.js`: Decrypted content viewer.
+- `manifest.json`: Chrome extension manifest.
 
-- [Node.js](https://nodejs.org/) installed
-- [pnpm](https://pnpm.io/) installed (`npm install -g pnpm`)
-- [Docker](https://docker.com/) (optional, for containerized development)
+## Security
 
-### Installation
+- All encryption/decryption is done locally.
+- The decryption key is included in the link (anyone with the link can access the content).
+- No data is saved or transmitted to any server.
 
-#### Option 1: Local Development
+---
 
-```bash
-# Install all dependencies
-pnpm install
-
-# Start the WebSocket server
-pnpm run dev:server
-
-# Start the web client (in another terminal)
-pnpm run dev:web
-```
-
-#### Option 2: Docker Development
-
-```bash
-# Start all services with Docker Compose
-docker-compose up
-```
-
-### Development Scripts
-
-#### PNPM Scripts
-
-- `pnpm run dev` - Start the WebSocket server
-- `pnpm run dev:server` - Start only the server
-- `pnpm run dev:web` - Start only the web client
-- `pnpm run dev:extension` - Start only the Chrome extension
-- `pnpm run dev:all` - Start all services simultaneously
-- `pnpm run build` - Build all projects
-- `pnpm run test` - Run tests for all projects
-- `pnpm install` - Install dependencies for all projects
-
-#### Bash Scripts
-
-- `./scripts/dev-all.sh` - Start all services with colored output
-- `./scripts/dev-server.sh` - Start only the server
-- `./scripts/dev-web.sh` - Start only the web client
-- `./scripts/dev-extension.sh` - Start only the Chrome extension
-- `./scripts/install-all.sh` - Install all dependencies with helpful output
-
-## Individual Projects
-
-### Server (`/server`)
-
-WebSocket server running on port 4000.
-
-```bash
-cd server
-pnpm run start:dev
-```
-
-### Web Client (`/web-client`)
-
-HTML+JS client for users without the Chrome extension.
-
-```bash
-cd web-client
-pnpm run dev
-```
-
-### Chrome Extension (`/chrome-extension`)
-
-Browser extension for Chrome/Chromium-based browsers.
-
-```bash
-cd chrome-extension
-# Load the extension in Chrome's developer mode
-```
-
-## API Documentation
-
-### WebSocket Server
-
-- **URL**: `ws://localhost:4000`
-- **Protocol**: WebSocket
-- **Features**: Real-time messaging, ephemeral data sharing
-
-## License
-
-MIT
+This repository is a case study of a functional, simple, and secure Chrome extension for ephemeral sharing of information.

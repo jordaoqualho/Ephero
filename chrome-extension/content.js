@@ -1,3 +1,8 @@
+/**
+ * Ephero Chrome Extension - Content Script
+ * Handles text selection and secure sharing without server communication
+ */
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "SHARE_SELECTION") {
     handleShareSelection(request.data);
@@ -5,6 +10,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function handleShareSelection(text) {
+  // Highlight the selected text briefly
   const selection = window.getSelection();
   if (selection.rangeCount > 0) {
     const range = selection.getRangeAt(0);
@@ -20,6 +26,7 @@ function handleShareSelection(text) {
     }
   }
 
+  // Store the selected text for sharing
   chrome.storage.local.set({
     pendingShare: {
       text: text,
@@ -38,15 +45,18 @@ function showNotification(message) {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 12px 16px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
+    font-weight: 500;
     z-index: 10000;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
     animation: slideIn 0.3s ease-out;
+    max-width: 300px;
+    word-wrap: break-word;
   `;
 
   notification.textContent = message;
@@ -57,6 +67,10 @@ function showNotification(message) {
     @keyframes slideIn {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
     }
   `;
   document.head.appendChild(style);
@@ -71,6 +85,7 @@ function showNotification(message) {
   }, 3000);
 }
 
+// Track text selection
 document.addEventListener("mouseup", () => {
   const selection = window.getSelection();
   const selectedText = selection.toString().trim();
@@ -85,8 +100,9 @@ document.addEventListener("mouseup", () => {
   }
 });
 
+// Keyboard shortcut for sharing (Ctrl+Shift+S or Cmd+Shift+S)
 document.addEventListener("keydown", (event) => {
-  if (event.ctrlKey && event.shiftKey && event.key === "S") {
+  if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "S") {
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
 
@@ -94,5 +110,21 @@ document.addEventListener("keydown", (event) => {
       handleShareSelection(selectedText);
       event.preventDefault();
     }
+  }
+});
+
+// Context menu integration
+document.addEventListener("contextmenu", (event) => {
+  const selection = window.getSelection();
+  const selectedText = selection.toString().trim();
+
+  if (selectedText.length > 0) {
+    // Store the selection for context menu access
+    chrome.storage.local.set({
+      contextMenuSelection: {
+        text: selectedText,
+        timestamp: Date.now(),
+      },
+    });
   }
 });

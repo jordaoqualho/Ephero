@@ -430,8 +430,8 @@
   <body class="w-96 min-h-[500px] bg-gray-900 text-white">
     <div class="flex flex-col h-full">
       <header class="bg-gradient-to-br from-ephero-600 to-ephero-800 px-6 py-8 text-center">
-        <h1 class="text-2xl font-bold text-white mb-2">🔒 Ephero</h1>
-        <p class="text-ephero-100 text-sm">Secure ephemeral data sharing</p>
+        <h1 class="text-2xl font-bold text-white mb-2">🔐 Ephero</h1>
+        <p class="text-ephero-100 text-sm">Client-side secure ephemeral sharing</p>
       </header>
 
       <div class="bg-gray-800 px-6 py-3 border-b border-gray-700">
@@ -445,11 +445,11 @@
         <div id="shareSection" class="space-y-6">
           <div class="space-y-3">
             <label for="sensitiveText" class="block text-sm font-medium text-gray-300 uppercase tracking-wide">
-              Enter sensitive text
+              Enter sensitive data
             </label>
             <textarea
               id="sensitiveText"
-              placeholder="Type your sensitive information here..."
+              placeholder="Type your sensitive information here... (passwords, API keys, etc.)"
               rows="6"
               class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-ephero-500 focus:border-transparent resize-none transition-all duration-200"
             ></textarea>
@@ -467,7 +467,7 @@
 
         <div id="resultSection" class="hidden space-y-6">
           <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <h3 class="text-lg font-semibold text-white mb-4">Secure Link Generated</h3>
+            <h3 class="text-lg font-semibold text-white mb-4">Ephemeral Secure Link Generated</h3>
             <div class="space-y-4">
               <input
                 type="text"
@@ -511,6 +511,10 @@
       </div>
     </div>
 
+    <script src="tweetnacl.min.js"></script>
+    <script src="tweetnacl-util.min.js"></script>
+    <script src="crypto.js"></script>
+    <script src="linkManager.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

@@ -1,4 +1,1 @@
-packages:
-  - "server"
-  - "web-client"
-  - "chrome-extension"
+# pnpm workspace removido - projeto agora é apenas a extensão chrome
